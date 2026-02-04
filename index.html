@@ -158,6 +158,21 @@
         }
         input:focus { border-color: var(--primary); }
 
+        /* CUSTO CARDS SPECIFIC */
+        .custo-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid var(--border);
+        }
+        .custo-card strong { font-size: 1rem; }
+        .custo-card small { color: var(--muted); }
+        .custo-actions { display: flex; gap: 8px; margin-top: 8px; }
+
         /* BADGES */
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
         .badge-success { background: #dcfce7; color: #166534; }
@@ -296,14 +311,9 @@
             <div class="card">
                 <div class="card-title">
                     Custos Fixos
-                    <button class="btn btn-primary" onclick="openModalCusto()">+ Novo</button>
+                    <button class="btn btn-primary" id="btn-add-custo">+ Novo</button>
                 </div>
-                <div class="table-wrap">
-                    <table id="table-custos">
-                        <thead><tr><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Ações</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div id="custos-container" class="grid"></div>
             </div>
         </section>
 
@@ -389,13 +399,26 @@
 
     <div id="modal-custo" class="modal">
         <div class="modal-content">
-            <h3 style="margin-bottom:16px;">Custo Fixo</h3>
-            <form onsubmit="saveCusto(event)">
-                <div class="form-group"><label>Descrição</label><input type="text" id="custo-desc" required></div>
-                <div class="form-group"><label>Categoria</label><select id="custo-cat"><option value="Fixo">Fixo</option><option value="Variável">Variável</option></select></div>
-                <div class="form-group"><label>Valor Mensal (R$)</label><input type="number" id="custo-valor" step="0.01" required></div>
-                <div style="display:flex; justify-content:flex-end; gap:8px;">
-                    <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
+            <h3 id="custo-modal-title">Novo Custo</h3>
+            <form id="form-custo">
+                <input type="hidden" id="custo-id">
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <input type="text" id="custo-desc" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="custo-cat">
+                        <option value="Fixo">Fixo</option>
+                        <option value="Variável">Variável</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Valor mensal (R$)</label>
+                    <input type="number" id="custo-valor" step="0.01" required>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+                    <button type="button" class="btn btn-ghost" id="btn-cancel-custo">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
@@ -416,7 +439,10 @@
             lanches: [ { id: "lan1", nome: "X-Burger", precoVenda: 18.00 } ],
             fichas: [ { id: "fic1", lancheId: "lan1", itens: [{ ingredienteId: "ing1", quantidadeUsada: 1 }, { ingredienteId: "ing2", quantidadeUsada: 140 }, { ingredienteId: "ing3", quantidadeUsada: 2 }, { ingredienteId: "ing8", quantidadeUsada: 10 }] } ],
             producao: [],
-            custosFixos: [ { id: "c1", descricao: "Aluguel", categoria: "Fixo", valorMensal: 1200.00 } ],
+            custosFixos: [ 
+                { id: 'c1', descricao: 'Aluguel', categoria: 'Fixo', valorMensal: 1200 },
+                { id: 'c2', descricao: 'Internet', categoria: 'Fixo', valorMensal: 150 }
+            ],
             configuracoes: { cmvAlvo: 35 }
         };
 
@@ -449,7 +475,6 @@
                 sidebar.classList.remove('open');
             }
 
-            // Renderizar dados específicos do módulo
             if (modId === 'ingredientes') renderIngredientes();
             if (modId === 'fichas') renderFichas();
             if (modId === 'lanches') renderResumoLanches();
@@ -717,22 +742,91 @@
 
         function deleteProducao(id) { if (confirm("Remover?")) { appData.producao = appData.producao.filter(p => p.id !== id); save(); renderProducao(); updateDashboard(); } }
 
-        // --- CUSTOS ---
+        // --- CUSTOS FIXOS (NOVA LÓGICA) ---
+        const custosContainer = document.getElementById('custos-container');
+        const modalCusto = document.getElementById('modal-custo');
+        const formCusto = document.getElementById('form-custo');
+
+        document.getElementById('btn-add-custo').addEventListener('click', () => abrirModalCusto());
+        document.getElementById('btn-cancel-custo').addEventListener('click', fecharModalCusto);
+
         function renderCustos() {
-            const tbody = document.querySelector('#table-custos tbody');
-            tbody.innerHTML = '';
+            custosContainer.innerHTML = '';
+
+            if (!appData.custosFixos.length) {
+                custosContainer.innerHTML = '<p style="padding:16px;color:var(--muted)">Nenhum custo cadastrado.</p>';
+                return;
+            }
+
             appData.custosFixos.forEach(c => {
-                tbody.innerHTML += `<tr><td>${c.descricao}</td><td>${c.categoria}</td><td>${fmtBRL(c.valorMensal)}</td><td><button class="btn btn-ghost btn-sm" onclick="deleteCusto('${c.id}')">🗑️</button></td></tr>`;
+                const div = document.createElement('div');
+                div.className = 'custo-card';
+
+                div.innerHTML = `
+                    <strong>${c.descricao}</strong>
+                    <small>${c.categoria}</small>
+                    <strong>${fmtBRL(c.valorMensal)}</strong>
+
+                    <div class="custo-actions">
+                        <button class="btn btn-ghost btn-edit btn-sm">✏️ Editar</button>
+                        <button class="btn btn-danger btn-del btn-sm">🗑️ Excluir</button>
+                    </div>
+                `;
+
+                div.querySelector('.btn-edit').onclick = () => abrirModalCusto(c);
+                div.querySelector('.btn-del').onclick = () => excluirCusto(c.id);
+
+                custosContainer.appendChild(div);
             });
         }
 
-        function openModalCusto() { document.getElementById('modal-custo').classList.add('open'); }
-        function saveCusto(e) {
-            e.preventDefault();
-            appData.custosFixos.push({ id: crypto.randomUUID(), descricao: document.getElementById('custo-desc').value, categoria: document.getElementById('custo-cat').value, valorMensal: parseFloat(document.getElementById('custo-valor').value) });
-            save(); closeModals(); renderCustos(); updateDashboard();
+        function abrirModalCusto(custo = null) {
+            modalCusto.classList.add('open');
+            if (custo) {
+                document.getElementById('custo-modal-title').innerText = 'Editar Custo';
+                document.getElementById('custo-id').value = custo.id;
+                document.getElementById('custo-desc').value = custo.descricao;
+                document.getElementById('custo-cat').value = custo.categoria;
+                document.getElementById('custo-valor').value = custo.valorMensal;
+            } else {
+                document.getElementById('custo-modal-title').innerText = 'Novo Custo';
+                formCusto.reset();
+                document.getElementById('custo-id').value = '';
+            }
         }
-        function deleteCusto(id) { appData.custosFixos = appData.custosFixos.filter(c => c.id !== id); save(); renderCustos(); updateDashboard(); }
+
+        function fecharModalCusto() { modalCusto.classList.remove('open'); }
+
+        formCusto.addEventListener('submit', e => {
+            e.preventDefault();
+            const id = document.getElementById('custo-id').value;
+            const desc = document.getElementById('custo-desc').value;
+            const cat = document.getElementById('custo-cat').value;
+            const valor = parseFloat(document.getElementById('custo-valor').value);
+
+            if (id) {
+                const custo = appData.custosFixos.find(c => c.id === id);
+                custo.descricao = desc;
+                custo.categoria = cat;
+                custo.valorMensal = valor;
+            } else {
+                appData.custosFixos.push({ id: crypto.randomUUID(), descricao: desc, categoria: cat, valorMensal: valor });
+            }
+
+            save();
+            fecharModalCusto();
+            renderCustos();
+            updateDashboard();
+            showToast("Custos atualizados!");
+        });
+
+        function excluirCusto(id) {
+            if (!confirm('Excluir este custo?')) return;
+            appData.custosFixos = appData.custosFixos.filter(c => c.id !== id);
+            save();
+            renderCustos();
+            updateDashboard();
+        }
 
         // --- SISTEMA ---
         function saveConfigs() { appData.configuracoes.cmvAlvo = parseFloat(document.getElementById('cfg-cmv-alvo').value); save(); showToast("Metas atualizadas!"); }
@@ -741,7 +835,9 @@
             document.getElementById('ficha-itens-container').innerHTML = ''; addFichaItemRow();
             document.getElementById('modal-ficha').classList.add('open');
         }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); }
+        function closeModals() { 
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); 
+        }
         function resetApp() { if (confirm("Deseja apagar TUDO?")) { localStorage.clear(); location.reload(); } }
         function exportData() { const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const url = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = url; l.download = 'backup_burgermaster.json'; l.click(); }
         function importData(e) {
