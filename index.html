@@ -1,252 +1,759 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>BurgerMaster Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BurgerMaster Pro</title>
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --secondary: #1f2937;
+            --bg: #f3f4f6;
+            --card: #fff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
 
-<style>
-:root{
---primary:#f59e0b;
---secondary:#1f2937;
---bg:#f3f4f6;
---card:#fff;
---text:#111827;
---muted:#6b7280;
---border:#e5e7eb;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
 
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI;}
+        body { background: var(--bg); color: var(--text); }
 
-body{background:var(--bg);color:var(--text);}
+        .hidden { display: none !important; }
 
-/* HEADER MOBILE */
-.header{
-position:fixed;
-top:0;left:0;right:0;
-height:56px;
-background:var(--secondary);
-color:#fff;
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:0 16px;
-z-index:1000;
-}
+        /* HEADER */
+        .header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            background: var(--secondary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 1000;
+        }
 
-.header h1{font-size:1rem;color:var(--primary);}
+        .header h1 { font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .header button {
+            background: none; border: none;
+            font-size: 1.4rem; color: #fff;
+            cursor: pointer;
+        }
 
-.menu-btn{
-background:none;
-border:none;
-font-size:1.4rem;
-color:#fff;
-cursor:pointer;
-}
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            left: -260px;
+            width: 260px;
+            height: calc(100vh - 56px);
+            background: var(--secondary);
+            padding: 12px;
+            transition: .3s;
+            z-index: 999;
+            overflow-y: auto;
+        }
 
-/* SIDEBAR */
-.sidebar{
-position:fixed;
-top:56px;
-left:-260px;
-width:260px;
-height:calc(100vh - 56px);
-background:var(--secondary);
-color:#fff;
-transition:.3s;
-z-index:999;
-padding:12px;
-overflow-y:auto;
-}
+        .sidebar.open { left: 0; }
 
-.sidebar.open{left:0;}
+        .nav-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            color: #d1d5db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
 
-.nav-item{
-padding:12px;
-border-radius:8px;
-margin-bottom:6px;
-cursor:pointer;
-color:#d1d5db;
-}
+        .nav-item.active,
+        .nav-item:hover {
+            background: var(--primary);
+            color: #fff;
+        }
 
-.nav-item.active,
-.nav-item:hover{
-background:var(--primary);
-color:#fff;
-}
+        /* MAIN */
+        .main {
+            padding: 72px 12px 16px;
+            max-width: 1200px;
+            margin: auto;
+            transition: padding 0.3s;
+        }
 
-/* MAIN */
-.main{
-padding:72px 12px 16px;
-max-width:1200px;
-margin:auto;
-}
+        /* CARDS */
+        .card {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.08);
+        }
 
-/* CARDS */
-.card{
-background:var(--card);
-border-radius:12px;
-padding:16px;
-margin-bottom:16px;
-box-shadow:0 2px 6px rgba(0,0,0,.08);
-}
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-.card-title{
-font-weight:600;
-margin-bottom:12px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
+        /* BUTTONS */
+        .btn {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
 
-/* GRID */
-.grid{
-display:grid;
-gap:12px;
-grid-template-columns:1fr;
-}
+        /* STATS */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
 
-/* STATS */
-.stats{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px;
-}
+        .stat {
+            background: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .stat label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+        .stat strong { font-size: 1.1rem; font-weight: 700; display: block; }
 
-.stat{
-background:#fff;
-padding:12px;
-border-radius:10px;
-border-left:4px solid var(--primary);
-}
+        /* TABLE */
+        .table-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 0.9rem; }
+        th { background: #f9fafb; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
 
-.stat small{color:var(--muted);}
-.stat strong{display:block;font-size:1.1rem;margin-top:4px;}
+        /* FORMS */
+        .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--muted); }
+        input, select {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem;
+        }
+        input:focus { border-color: var(--primary); }
 
-/* BUTTONS */
-.btn{
-padding:10px 14px;
-border-radius:8px;
-border:none;
-font-weight:600;
-cursor:pointer;
-}
+        /* BADGES */
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-warning { background: #fef9c3; color: #854d0e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
 
-.btn-primary{background:var(--primary);color:#fff;}
-.btn-ghost{background:none;border:1px solid var(--border);}
+        /* MODAL */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 16px;
+        }
+        .modal-content { background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal.open { display: flex; }
 
-/* TABLE */
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;min-width:600px;}
-th,td{padding:10px;border-bottom:1px solid var(--border);font-size:.9rem;}
-th{text-transform:uppercase;font-size:.7rem;color:var(--muted);}
+        /* TOAST */
+        #toast {
+            position: fixed; bottom: 20px; right: 20px; background: var(--secondary); color: #fff;
+            padding: 12px 20px; border-radius: 8px; display: none; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+        }
 
-/* MODAL */
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.5);
-display:none;
-align-items:center;
-justify-content:center;
-padding:12px;
-z-index:2000;
-}
-
-.modal.open{display:flex;}
-
-.modal-content{
-background:#fff;
-width:100%;
-max-width:500px;
-border-radius:12px;
-padding:16px;
-max-height:90vh;
-overflow-y:auto;
-}
-
-/* DESKTOP */
-@media(min-width:900px){
-.header{display:none;}
-.sidebar{
-left:0;
-top:0;
-height:100vh;
-}
-.main{
-padding:24px 24px 24px 300px;
-}
-.grid{grid-template-columns:repeat(2,1fr);}
-.stats{grid-template-columns:repeat(4,1fr);}
-}
-</style>
+        /* DESKTOP */
+        @media(min-width:900px){
+            .header { display: none; }
+            .sidebar { left: 0; top: 0; height: 100vh; }
+            .main { padding: 24px 24px 24px 284px; }
+            .stats { grid-template-columns: repeat(4, 1fr); }
+            .modal-content { padding: 32px; }
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- HEADER MOBILE -->
-<header class="header">
-<button class="menu-btn" onclick="toggleSidebar()">☰</button>
-<h1>🍔 BurgerMaster</h1>
-</header>
+    <header class="header">
+        <h1>🍔 BurgerMaster Pro</h1>
+        <button id="btn-menu">☰</button>
+    </header>
 
-<!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-<div class="nav-item active" onclick="showModule('indicadores')">📊 Indicadores</div>
-<div class="nav-item" onclick="showModule('ingredientes')">🥬 Ingredientes</div>
-<div class="nav-item" onclick="showModule('fichas')">📋 Fichas</div>
-<div class="nav-item" onclick="showModule('lanches')">🥪 Cardápio</div>
-<div class="nav-item" onclick="showModule('producao')">💰 Produção</div>
-<div class="nav-item" onclick="showModule('custos')">🧾 Custos</div>
-<div class="nav-item" onclick="showModule('backup')">⚙️ Config</div>
-</aside>
+    <aside class="sidebar" id="sidebar">
+        <div class="nav-item active" data-module="indicadores">📊 Indicadores</div>
+        <div class="nav-item" data-module="ingredientes">🥬 Ingredientes</div>
+        <div class="nav-item" data-module="fichas">📋 Fichas Técnicas</div>
+        <div class="nav-item" data-module="lanches">🥪 Cardápio</div>
+        <div class="nav-item" data-module="producao">💰 Produção</div>
+        <div class="nav-item" data-module="custos">🧾 Custos</div>
+        <div class="nav-item" data-module="backup">⚙️ Configurações</div>
+    </aside>
 
-<!-- MAIN -->
-<main class="main">
+    <main class="main">
+        
+        <!-- MÓDULO: INDICADORES -->
+        <section id="mod-indicadores" class="module">
+            <div class="stats" id="dashboard-stats"></div>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">Alertas de CMV</div>
+                    <div class="table-wrap">
+                        <table id="table-alertas-cmv">
+                            <thead><tr><th>Lanche</th><th>CMV Atual</th><th>Status</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<section id="mod-indicadores">
-<div class="stats" id="dashboard-stats"></div>
+        <!-- MÓDULO: INGREDIENTES -->
+        <section id="mod-ingredientes" class="module hidden">
+            <div class="card">
+                <div class="card-title">
+                    Insumos
+                    <button class="btn btn-primary" onclick="openModalIngrediente()">+ Novo</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="search-ingrediente" placeholder="🔍 Buscar insumo..." oninput="renderIngredientes()">
+                </div>
+                <div class="table-wrap">
+                    <table id="table-ingredientes">
+                        <thead><tr><th>Nome</th><th>Un.</th><th>Preço Compra</th><th>Custo Unit.</th><th>Ações</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-<div class="card">
-<div class="card-title">Resumo</div>
-<div style="height:120px;background:#f9fafb;border-radius:8px;display:flex;align-items:center;justify-content:center;">
-Gráficos futuros
-</div>
-</div>
-</section>
+        <!-- MÓDULO: FICHAS TÉCNICAS -->
+        <section id="mod-fichas" class="module hidden">
+            <div class="card">
+                <div class="card-title">
+                    Fichas Técnicas
+                    <button class="btn btn-primary" onclick="openModalFicha()">+ Criar Ficha</button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-fichas">
+                        <thead><tr><th>Lanche</th><th>Itens</th><th>Custo Produção</th><th>Ações</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-<section id="mod-ingredientes" class="hidden">
-<div class="card">
-<div class="card-title">
-Ingredientes
-<button class="btn btn-primary">+ Novo</button>
-</div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr><th>Nome</th><th>Preço</th></tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
-</div>
-</section>
+        <!-- MÓDULO: CARDÁPIO -->
+        <section id="mod-lanches" class="module hidden">
+            <div class="card">
+                <div class="card-title">Rentabilidade do Cardápio</div>
+                <div class="table-wrap">
+                    <table id="table-resumo-lanches">
+                        <thead><tr><th>Lanche</th><th>Custo</th><th>Venda</th><th>CMV %</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-</main>
+        <!-- MÓDULO: PRODUÇÃO -->
+        <section id="mod-producao" class="module hidden">
+            <div class="card">
+                <div class="card-title">
+                    Histórico de Vendas
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importHistorico').click()">📁 CSV</button>
+                        <input type="file" id="importHistorico" class="hidden" accept=".csv" onchange="handleHistoricoCSV(event)">
+                        <button class="btn btn-primary btn-sm" onclick="openModalProducao()">+ Lançar</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-vendas">
+                        <thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Total</th><th>Ações</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-<script>
-function toggleSidebar(){
-document.getElementById('sidebar').classList.toggle('open');
-}
+        <!-- MÓDULO: CUSTOS -->
+        <section id="mod-custos" class="module hidden">
+            <div class="card">
+                <div class="card-title">
+                    Custos Fixos
+                    <button class="btn btn-primary" onclick="openModalCusto()">+ Novo</button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-custos">
+                        <thead><tr><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Ações</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-function showModule(id){
-document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
-document.getElementById('mod-'+id).classList.remove('hidden');
-document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-event.target.classList.add('active');
-if(window.innerWidth<900)toggleSidebar();
-}
-</script>
+        <!-- MÓDULO: CONFIGURAÇÕES -->
+        <section id="mod-backup" class="module hidden">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">Metas</div>
+                    <div class="form-group">
+                        <label>CMV Alvo (%)</label>
+                        <input type="number" id="cfg-cmv-alvo" step="0.01" onchange="saveConfigs()">
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Sistema</div>
+                    <div style="display:grid; gap:8px;">
+                        <button class="btn btn-ghost" onclick="exportData()">💾 Backup JSON</button>
+                        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">📂 Restaurar Dados</button>
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+                        <button class="btn btn-danger" onclick="resetApp()">⚠️ Limpar Tudo</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
+    <!-- MODAIS -->
+    <div id="modal-ingrediente" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:16px;">Insumo</h3>
+            <form onsubmit="saveIngrediente(event)">
+                <input type="hidden" id="ing-id">
+                <div class="form-group"><label>Nome</label><input type="text" id="ing-nome" required></div>
+                <div class="grid">
+                    <div class="form-group"><label>Unidade (kg, un, g)</label><input type="text" id="ing-unidade" required></div>
+                    <div class="form-group"><label>Qtd Compra</label><input type="number" id="ing-qtd" step="0.001" required></div>
+                </div>
+                <div class="form-group"><label>Preço Pago (R$)</label><input type="number" id="ing-preco" step="0.01" required></div>
+                <div class="form-group"><label>Data</label><input type="date" id="ing-data" required></div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-ficha" class="modal">
+        <div class="modal-content" style="max-width:700px;">
+            <h3 style="margin-bottom:16px;">Ficha Técnica</h3>
+            <div class="form-group"><label>Nome do Lanche</label><input type="text" id="ficha-lanche-nome"></div>
+            <div class="form-group"><label>Preço de Venda (R$)</label><input type="number" id="ficha-preco-venda" step="0.01"></div>
+            <hr style="margin:16px 0; border:none; border-top:1px solid var(--border);">
+            <div id="ficha-itens-container"></div>
+            <button class="btn btn-ghost btn-sm" onclick="addFichaItemRow()">+ Adicionar Item</button>
+            <div style="margin:20px 0; padding:12px; background:#f9fafb; border-radius:8px; text-align:right;">
+                <strong>Custo Total: <span id="ficha-total-live">R$ 0,00</span></strong>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
+                <button type="button" class="btn btn-primary" onclick="saveFicha()">Salvar Ficha</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-producao" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:16px;">Lançar Venda</h3>
+            <form onsubmit="saveProducao(event)">
+                <div class="form-group"><label>Data</label><input type="date" id="prod-data" required></div>
+                <div class="form-group"><label>Produto</label><select id="prod-lanche-id" required onchange="updateProdPrecoDefault()"></select></div>
+                <div class="grid">
+                    <div class="form-group"><label>Qtd</label><input type="number" id="prod-qtd" min="1" value="1" required></div>
+                    <div class="form-group"><label>Preço Unit.</label><input type="number" id="prod-preco" step="0.01" required></div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
+                    <button type="submit" class="btn btn-primary">Lançar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-custo" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:16px;">Custo Fixo</h3>
+            <form onsubmit="saveCusto(event)">
+                <div class="form-group"><label>Descrição</label><input type="text" id="custo-desc" required></div>
+                <div class="form-group"><label>Categoria</label><select id="custo-cat"><option value="Fixo">Fixo</option><option value="Variável">Variável</option></select></div>
+                <div class="form-group"><label>Valor Mensal (R$)</label><input type="number" id="custo-valor" step="0.01" required></div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast">Operação realizada!</div>
+
+    <script>
+        // --- ESTADO INICIAL ---
+        let appData = {
+            ingredientes: [
+                { id: "ing1", nome: "Pão Brioche", unidadeCompra: "un", quantidadeCompra: 250, precoCompra: 300.00, dataAtualizacao: "2025-07-10" },
+                { id: "ing2", nome: "Hambúrguer 150g", unidadeCompra: "grama", quantidadeCompra: 250, precoCompra: 10.00, dataAtualizacao: "2025-07-10" },
+                { id: "ing3", nome: "Queijo Cheddar", unidadeCompra: "fatia", quantidadeCompra: 400, precoCompra: 19.20, dataAtualizacao: "2025-07-10" },
+                { id: "ing8", nome: "Molho da Casa", unidadeCompra: "grama", quantidadeCompra: 150, precoCompra: 3.00, dataAtualizacao: "2025-07-10" }
+            ],
+            lanches: [ { id: "lan1", nome: "X-Burger", precoVenda: 18.00 } ],
+            fichas: [ { id: "fic1", lancheId: "lan1", itens: [{ ingredienteId: "ing1", quantidadeUsada: 1 }, { ingredienteId: "ing2", quantidadeUsada: 140 }, { ingredienteId: "ing3", quantidadeUsada: 2 }, { ingredienteId: "ing8", quantidadeUsada: 10 }] } ],
+            producao: [],
+            custosFixos: [ { id: "c1", descricao: "Aluguel", categoria: "Fixo", valorMensal: 1200.00 } ],
+            configuracoes: { cmvAlvo: 35 }
+        };
+
+        const STORAGE_KEY = 'hamburgueria_app_v1';
+
+        // --- SISTEMA DE NAVEGAÇÃO ---
+        const sidebar = document.getElementById('sidebar');
+        const btnMenu = document.getElementById('btn-menu');
+
+        btnMenu.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const mod = item.dataset.module;
+                showModule(mod);
+            });
+        });
+
+        function showModule(modId) {
+            document.querySelectorAll('.module').forEach(m => m.classList.add('hidden'));
+            document.getElementById(`mod-${modId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const activeItem = document.querySelector(`[data-module="${modId}"]`);
+            if(activeItem) activeItem.classList.add('active');
+
+            if (window.innerWidth < 900) {
+                sidebar.classList.remove('open');
+            }
+
+            // Renderizar dados específicos do módulo
+            if (modId === 'ingredientes') renderIngredientes();
+            if (modId === 'fichas') renderFichas();
+            if (modId === 'lanches') renderResumoLanches();
+            if (modId === 'producao') renderProducao();
+            if (modId === 'custos') renderCustos();
+            if (modId === 'indicadores') updateDashboard();
+        }
+
+        // --- CORE LÓGICA ---
+        function init() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) appData = JSON.parse(saved);
+            else save();
+            
+            document.getElementById('cfg-cmv-alvo').value = appData.configuracoes.cmvAlvo;
+            updateDashboard();
+        }
+
+        function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        const fmtBRL = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+        const fmtDate = (d) => d ? d.split('-').reverse().join('/') : '-';
+
+        // --- DASHBOARD DINÂMICO ---
+        function updateDashboard() {
+            const fat = appData.producao.reduce((acc, p) => acc + p.faturamento, 0);
+            const fixo = appData.custosFixos.reduce((acc, c) => acc + c.valorMensal, 0);
+            let cVendido = 0;
+            appData.producao.forEach(p => {
+                const f = appData.fichas.find(x => x.lancheId === p.lancheId);
+                if (f) cVendido += calcularCustoFicha(f.id) * p.quantidadeVendida;
+            });
+            const cmvG = fat > 0 ? (cVendido / fat) * 100 : 0;
+            const luc = fat - cVendido - fixo;
+
+            document.getElementById('dashboard-stats').innerHTML = `
+                <div class="stat"><label>Faturamento</label><strong>${fmtBRL(fat)}</strong></div>
+                <div class="stat" style="border-left-color: var(--success)"><label>CMV Global</label><strong>${cmvG.toFixed(1)}%</strong></div>
+                <div class="stat" style="border-left-color: var(--danger)"><label>Custos Fixos</label><strong>${fmtBRL(fixo)}</strong></div>
+                <div class="stat" style="border-left-color: #8b5cf6"><label>Lucro Líquido</label><strong>${fmtBRL(luc)}</strong></div>
+            `;
+            
+            const alerts = document.querySelector('#table-alertas-cmv tbody'); 
+            alerts.innerHTML = '';
+            appData.lanches.forEach(l => {
+                const f = appData.fichas.find(x => x.lancheId === l.id);
+                if (f) {
+                    const c = (calcularCustoFicha(f.id) / (l.precoVenda || 1)) * 100;
+                    if (c > appData.configuracoes.cmvAlvo) {
+                        alerts.innerHTML += `<tr><td>${l.nome}</td><td class="text-danger">${c.toFixed(1)}%</td><td><span class="badge badge-warning">Alto</span></td></tr>`;
+                    }
+                }
+            });
+            if (!alerts.innerHTML) alerts.innerHTML = '<tr><td colspan="3" style="text-align:center">Sem alertas</td></tr>';
+        }
+
+        // --- INGREDIENTES ---
+        function renderIngredientes() {
+            const search = document.getElementById('search-ingrediente').value.toLowerCase();
+            const tbody = document.querySelector('#table-ingredientes tbody');
+            tbody.innerHTML = '';
+            appData.ingredientes.filter(i => i.nome.toLowerCase().includes(search)).forEach(i => {
+                const cUnit = i.precoCompra / i.quantidadeCompra;
+                tbody.innerHTML += `<tr><td>${i.nome}</td><td>${i.unidadeCompra}</td><td>${fmtBRL(i.precoCompra)}</td><td>${fmtBRL(cUnit)}</td><td><button class="btn btn-ghost btn-sm" onclick="editIngrediente('${i.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="deleteIngrediente('${i.id}')">🗑️</button></td></tr>`;
+            });
+        }
+
+        function openModalIngrediente() {
+            document.getElementById('ing-id').value = '';
+            document.getElementById('ing-nome').value = '';
+            document.getElementById('ing-unidade').value = '';
+            document.getElementById('ing-qtd').value = '';
+            document.getElementById('ing-preco').value = '';
+            document.getElementById('ing-data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-ingrediente').classList.add('open');
+        }
+
+        function saveIngrediente(e) {
+            e.preventDefault();
+            const id = document.getElementById('ing-id').value || crypto.randomUUID();
+            const obj = {
+                id,
+                nome: document.getElementById('ing-nome').value,
+                unidadeCompra: document.getElementById('ing-unidade').value,
+                quantidadeCompra: parseFloat(document.getElementById('ing-qtd').value),
+                precoCompra: parseFloat(document.getElementById('ing-preco').value),
+                dataAtualizacao: document.getElementById('ing-data').value
+            };
+            const idx = appData.ingredientes.findIndex(i => i.id === id);
+            if (idx > -1) appData.ingredientes[idx] = obj;
+            else appData.ingredientes.push(obj);
+            save(); closeModals(); renderIngredientes(); showToast("Salvo!");
+        }
+
+        function deleteIngrediente(id) { if (confirm("Excluir?")) { appData.ingredientes = appData.ingredientes.filter(i => i.id !== id); save(); renderIngredientes(); } }
+
+        function editIngrediente(id) {
+            const i = appData.ingredientes.find(x => x.id === id);
+            document.getElementById('ing-id').value = i.id;
+            document.getElementById('ing-nome').value = i.nome;
+            document.getElementById('ing-unidade').value = i.unidadeCompra;
+            document.getElementById('ing-qtd').value = i.quantidadeCompra;
+            document.getElementById('ing-preco').value = i.precoCompra;
+            document.getElementById('ing-data').value = i.dataAtualizacao;
+            document.getElementById('modal-ingrediente').classList.add('open');
+        }
+
+        // --- FICHAS ---
+        function renderFichas() {
+            const tbody = document.querySelector('#table-fichas tbody');
+            tbody.innerHTML = '';
+            appData.fichas.forEach(f => {
+                const l = appData.lanches.find(x => x.id === f.lancheId);
+                const c = calcularCustoFicha(f.id);
+                tbody.innerHTML += `<tr><td><strong>${l?.nome || 'N/A'}</strong></td><td>${f.itens.length} itens</td><td>${fmtBRL(c)}</td><td><button class="btn btn-ghost btn-sm" onclick="editFicha('${f.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="deleteFicha('${f.id}')">🗑️</button></td></tr>`;
+            });
+        }
+
+        function calcularCustoFicha(fid) {
+            const f = appData.fichas.find(x => x.id === fid);
+            if (!f) return 0;
+            return f.itens.reduce((acc, item) => {
+                const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
+                if (!ing) return acc;
+                return acc + ((ing.precoCompra / ing.quantidadeCompra) * item.quantidadeUsada);
+            }, 0);
+        }
+
+        function addFichaItemRow(ingId = '', qtd = '') {
+            const cont = document.getElementById('ficha-itens-container');
+            const rid = crypto.randomUUID();
+            const div = document.createElement('div');
+            div.className = 'grid'; div.style.marginBottom = '10px'; div.id = rid;
+            let opts = '<option value="">Insumo...</option>';
+            appData.ingredientes.forEach(ing => opts += `<option value="${ing.id}" ${ing.id === ingId ? 'selected' : ''}>${ing.nome}</option>`);
+            div.innerHTML = `<div style="grid-column: span 2"><select onchange="updateFichaLive()">${opts}</select></div><div><input type="number" step="0.001" placeholder="Qtd" value="${qtd}" oninput="updateFichaLive()"></div><div><button class="btn btn-danger btn-sm" onclick="document.getElementById('${rid}').remove(); updateFichaLive();">✕</button></div>`;
+            cont.appendChild(div);
+        }
+
+        function updateFichaLive() {
+            let t = 0;
+            const rows = document.getElementById('ficha-itens-container').children;
+            for (let r of rows) {
+                const s = r.querySelector('select');
+                const i = r.querySelector('input');
+                if (s?.value && i?.value) {
+                    const ing = appData.ingredientes.find(x => x.id === s.value);
+                    if (ing) t += (ing.precoCompra / ing.quantidadeCompra) * parseFloat(i.value);
+                }
+            }
+            document.getElementById('ficha-total-live').textContent = fmtBRL(t);
+        }
+
+        function editFicha(id) {
+            const f = appData.fichas.find(x => x.id === id);
+            const l = appData.lanches.find(x => x.id === f.lancheId);
+            document.getElementById('ficha-lanche-nome').value = l.nome;
+            document.getElementById('ficha-preco-venda').value = l.precoVenda;
+            document.getElementById('ficha-itens-container').innerHTML = '';
+            f.itens.forEach(i => addFichaItemRow(i.ingredienteId, i.quantidadeUsada));
+            updateFichaLive();
+            document.getElementById('modal-ficha').classList.add('open');
+        }
+
+        function saveFicha() {
+            const n = document.getElementById('ficha-lanche-nome').value;
+            const p = parseFloat(document.getElementById('ficha-preco-venda').value);
+            if (!n || isNaN(p)) return showToast("Dados incompletos!");
+            let l = appData.lanches.find(x => x.nome === n);
+            if (!l) { l = { id: crypto.randomUUID(), nome: n, precoVenda: p }; appData.lanches.push(l); }
+            else l.precoVenda = p;
+            const items = [];
+            for (let r of document.getElementById('ficha-itens-container').children) {
+                const s = r.querySelector('select').value;
+                const i = parseFloat(r.querySelector('input').value);
+                if (s && i) items.push({ ingredienteId: s, quantidadeUsada: i });
+            }
+            appData.fichas = appData.fichas.filter(f => f.lancheId !== l.id);
+            appData.fichas.push({ id: crypto.randomUUID(), lancheId: l.id, itens: items });
+            save(); closeModals(); renderFichas(); showToast("Ficha salva!");
+        }
+
+        function deleteFicha(id) { if (confirm("Excluir ficha?")) { appData.fichas = appData.fichas.filter(f => f.id !== id); save(); renderFichas(); } }
+
+        // --- LANCHES ---
+        function renderResumoLanches() {
+            const tbody = document.querySelector('#table-resumo-lanches tbody');
+            tbody.innerHTML = '';
+            appData.lanches.forEach(l => {
+                const f = appData.fichas.find(x => x.lancheId === l.id);
+                const c = f ? calcularCustoFicha(f.id) : 0;
+                const cmv = l.precoVenda > 0 ? (c / l.precoVenda) * 100 : 0;
+                tbody.innerHTML += `<tr><td><strong>${l.nome}</strong></td><td>${fmtBRL(c)}</td><td>${fmtBRL(l.precoVenda)}</td><td>${cmv.toFixed(1)}%</td><td><span class="badge ${cmv <= appData.configuracoes.cmvAlvo ? 'badge-success' : 'badge-warning'}">${cmv <= appData.configuracoes.cmvAlvo ? 'OK' : 'Alto'}</span></td></tr>`;
+            });
+        }
+
+        // --- PRODUÇÃO ---
+        function renderProducao() {
+            const tbody = document.querySelector('#table-vendas tbody');
+            tbody.innerHTML = '';
+            appData.producao.sort((a,b) => b.dataISO.localeCompare(a.dataISO)).forEach(p => {
+                const l = appData.lanches.find(x => x.id === p.lancheId);
+                tbody.innerHTML += `<tr><td>${fmtDate(p.dataISO)}</td><td>${l?.nome || 'N/A'}</td><td>${p.quantidadeVendida}</td><td>${fmtBRL(p.faturamento)}</td><td><button class="btn btn-ghost btn-sm" onclick="deleteProducao('${p.id}')">🗑️</button></td></tr>`;
+            });
+        }
+
+        function handleHistoricoCSV(e) {
+            const fileInput = e.target;
+            const f = fileInput.files[0]; if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const lines = evt.target.result.split('\n');
+                const header = lines[0].split(',');
+                const c = { d: header.indexOf('Data'), i: header.indexOf('Itens'), t: header.indexOf('Total') };
+                for (let i = 1; i < lines.length; i++) {
+                    const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    if (!row || !row[c.i]) continue;
+                    const dataRaw = row[c.d].split('/');
+                    const dataISO = `${dataRaw[2]}-${dataRaw[1]}-${dataRaw[0]}`;
+                    const items = row[c.i].replace(/"/g, '').split(',');
+                    items.forEach(it => {
+                        const m = it.trim().match(/(\d+)x\s+(.+)/);
+                        if (m) {
+                            const q = parseInt(m[1]), n = m[2];
+                            let l = appData.lanches.find(x => x.nome === n);
+                            if (!l) { l = { id: crypto.randomUUID(), nome: n, precoVenda: 0 }; appData.lanches.push(l); }
+                            appData.producao.push({ id: crypto.randomUUID(), dataISO, lancheId: l.id, quantidadeVendida: q, precoUnitario: l.precoVenda || 0, faturamento: q * (l.precoVenda || 0) });
+                        }
+                    });
+                }
+                save(); renderProducao(); updateDashboard(); showToast("CSV Importado!");
+                fileInput.value = '';
+            };
+            reader.readAsText(f);
+        }
+
+        function openModalProducao() {
+            const s = document.getElementById('prod-lanche-id');
+            s.innerHTML = '<option value="">Lanche...</option>';
+            appData.lanches.forEach(l => s.innerHTML += `<option value="${l.id}">${l.nome}</option>`);
+            document.getElementById('prod-data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-producao').classList.add('open');
+        }
+
+        function updateProdPrecoDefault() {
+            const id = document.getElementById('prod-lanche-id').value;
+            const l = appData.lanches.find(x => x.id === id);
+            if (l) document.getElementById('prod-preco').value = l.precoVenda;
+        }
+
+        function saveProducao(e) {
+            e.preventDefault();
+            const lid = document.getElementById('prod-lanche-id').value;
+            const q = parseInt(document.getElementById('prod-qtd').value);
+            const p = parseFloat(document.getElementById('prod-preco').value);
+            appData.producao.push({ id: crypto.randomUUID(), dataISO: document.getElementById('prod-data').value, lancheId: lid, quantidadeVendida: q, precoUnitario: p, faturamento: q * p });
+            save(); closeModals(); renderProducao(); updateDashboard(); showToast("Lançado!");
+        }
+
+        function deleteProducao(id) { if (confirm("Remover?")) { appData.producao = appData.producao.filter(p => p.id !== id); save(); renderProducao(); updateDashboard(); } }
+
+        // --- CUSTOS ---
+        function renderCustos() {
+            const tbody = document.querySelector('#table-custos tbody');
+            tbody.innerHTML = '';
+            appData.custosFixos.forEach(c => {
+                tbody.innerHTML += `<tr><td>${c.descricao}</td><td>${c.categoria}</td><td>${fmtBRL(c.valorMensal)}</td><td><button class="btn btn-ghost btn-sm" onclick="deleteCusto('${c.id}')">🗑️</button></td></tr>`;
+            });
+        }
+
+        function openModalCusto() { document.getElementById('modal-custo').classList.add('open'); }
+        function saveCusto(e) {
+            e.preventDefault();
+            appData.custosFixos.push({ id: crypto.randomUUID(), descricao: document.getElementById('custo-desc').value, categoria: document.getElementById('custo-cat').value, valorMensal: parseFloat(document.getElementById('custo-valor').value) });
+            save(); closeModals(); renderCustos(); updateDashboard();
+        }
+        function deleteCusto(id) { appData.custosFixos = appData.custosFixos.filter(c => c.id !== id); save(); renderCustos(); updateDashboard(); }
+
+        // --- SISTEMA ---
+        function saveConfigs() { appData.configuracoes.cmvAlvo = parseFloat(document.getElementById('cfg-cmv-alvo').value); save(); showToast("Metas atualizadas!"); }
+        function openModalFicha() {
+            document.getElementById('ficha-lanche-nome').value = ''; document.getElementById('ficha-preco-venda').value = '';
+            document.getElementById('ficha-itens-container').innerHTML = ''; addFichaItemRow();
+            document.getElementById('modal-ficha').classList.add('open');
+        }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); }
+        function resetApp() { if (confirm("Deseja apagar TUDO?")) { localStorage.clear(); location.reload(); } }
+        function exportData() { const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const url = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = url; l.download = 'backup_burgermaster.json'; l.click(); }
+        function importData(e) {
+            const r = new FileReader();
+            r.onload = (evt) => { appData = JSON.parse(evt.target.result); save(); location.reload(); };
+            r.readAsText(e.target.files[0]);
+        }
+
+        window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModals(); }
+
+        // Inicializar
+        init();
+    </script>
 </body>
 </html>
