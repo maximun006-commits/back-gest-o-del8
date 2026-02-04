@@ -139,7 +139,7 @@
             border-left: 4px solid var(--primary);
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .stat label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+        .stat small { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
         .stat strong { font-size: 1.1rem; font-weight: 700; display: block; }
 
         /* TABLE */
@@ -155,10 +155,11 @@
         label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--muted); }
         input, select {
             width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem;
+            margin-bottom: 8px;
         }
         input:focus { border-color: var(--primary); }
 
-        /* CUSTO CARDS SPECIFIC */
+        /* NOVO DESIGN: CARDS DE CUSTO */
         .custo-card {
             background: #fff;
             border-radius: 12px;
@@ -173,18 +174,12 @@
         .custo-card small { color: var(--muted); }
         .custo-actions { display: flex; gap: 8px; margin-top: 8px; }
 
-        /* BADGES */
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
-        .badge-success { background: #dcfce7; color: #166534; }
-        .badge-warning { background: #fef9c3; color: #854d0e; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
-
         /* MODAL */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 16px;
         }
-        .modal-content { background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: #fff; padding: 24px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
         .modal.open { display: flex; }
 
         /* TOAST */
@@ -306,7 +301,7 @@
             </div>
         </section>
 
-        <!-- MÓDULO: CUSTOS -->
+        <!-- MÓDULO: CUSTOS (NOVO DESIGN) -->
         <section id="mod-custos" class="module hidden">
             <div class="card">
                 <div class="card-title">
@@ -397,26 +392,25 @@
         </div>
     </div>
 
-    <div id="modal-custo" class="modal">
+    <!-- MODAL DE CUSTO FIXO (ATUALIZADO) -->
+    <div class="modal" id="modal-custo">
         <div class="modal-content">
             <h3 id="custo-modal-title">Novo Custo</h3>
             <form id="form-custo">
                 <input type="hidden" id="custo-id">
-                <div class="form-group">
-                    <label>Descrição</label>
-                    <input type="text" id="custo-desc" required>
-                </div>
-                <div class="form-group">
-                    <label>Categoria</label>
-                    <select id="custo-cat">
-                        <option value="Fixo">Fixo</option>
-                        <option value="Variável">Variável</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Valor mensal (R$)</label>
-                    <input type="number" id="custo-valor" step="0.01" required>
-                </div>
+                
+                <label>Descrição</label>
+                <input type="text" id="custo-desc" required>
+
+                <label>Categoria</label>
+                <select id="custo-cat">
+                    <option value="Fixo">Fixo</option>
+                    <option value="Variável">Variável</option>
+                </select>
+
+                <label>Valor mensal (R$)</label>
+                <input type="number" id="custo-valor" step="0.01" required>
+
                 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
                     <button type="button" class="btn btn-ghost" id="btn-cancel-custo">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
@@ -428,25 +422,23 @@
     <div id="toast">Operação realizada!</div>
 
     <script>
-        // --- ESTADO INICIAL ---
+        // --- ESTRUTURA DE DADOS UNIFICADA ---
+        const STORAGE_KEY = 'hamburgueria_app_v1';
+        const STORAGE_CUSTOS = 'burgermaster_custos';
+
         let appData = {
-            ingredientes: [
-                { id: "ing1", nome: "Pão Brioche", unidadeCompra: "un", quantidadeCompra: 250, precoCompra: 300.00, dataAtualizacao: "2025-07-10" },
-                { id: "ing2", nome: "Hambúrguer 150g", unidadeCompra: "grama", quantidadeCompra: 250, precoCompra: 10.00, dataAtualizacao: "2025-07-10" },
-                { id: "ing3", nome: "Queijo Cheddar", unidadeCompra: "fatia", quantidadeCompra: 400, precoCompra: 19.20, dataAtualizacao: "2025-07-10" },
-                { id: "ing8", nome: "Molho da Casa", unidadeCompra: "grama", quantidadeCompra: 150, precoCompra: 3.00, dataAtualizacao: "2025-07-10" }
-            ],
-            lanches: [ { id: "lan1", nome: "X-Burger", precoVenda: 18.00 } ],
-            fichas: [ { id: "fic1", lancheId: "lan1", itens: [{ ingredienteId: "ing1", quantidadeUsada: 1 }, { ingredienteId: "ing2", quantidadeUsada: 140 }, { ingredienteId: "ing3", quantidadeUsada: 2 }, { ingredienteId: "ing8", quantidadeUsada: 10 }] } ],
+            ingredientes: [],
+            lanches: [],
+            fichas: [],
             producao: [],
-            custosFixos: [ 
-                { id: 'c1', descricao: 'Aluguel', categoria: 'Fixo', valorMensal: 1200 },
-                { id: 'c2', descricao: 'Internet', categoria: 'Fixo', valorMensal: 150 }
-            ],
             configuracoes: { cmvAlvo: 35 }
         };
 
-        const STORAGE_KEY = 'hamburgueria_app_v1';
+        // Carregar custos do novo local ou do antigo para não perder dados
+        let custosFixos = JSON.parse(localStorage.getItem(STORAGE_CUSTOS)) || [
+            { id: 'c1', descricao: 'Aluguel', categoria: 'Fixo', valor: 1200 },
+            { id: 'c2', descricao: 'Internet', categoria: 'Fixo', valor: 150 }
+        ];
 
         // --- SISTEMA DE NAVEGAÇÃO ---
         const sidebar = document.getElementById('sidebar');
@@ -480,20 +472,26 @@
             if (modId === 'lanches') renderResumoLanches();
             if (modId === 'producao') renderProducao();
             if (modId === 'custos') renderCustos();
-            if (modId === 'indicadores') updateDashboard();
+            if (modId === 'indicadores') atualizarDashboardFinanceiro();
         }
 
         // --- CORE LÓGICA ---
         function init() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) appData = JSON.parse(saved);
-            else save();
             
             document.getElementById('cfg-cmv-alvo').value = appData.configuracoes.cmvAlvo;
-            updateDashboard();
+            renderCustos();
+            atualizarDashboardFinanceiro();
         }
 
-        function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+        function save() { 
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); 
+        }
+
+        function salvarCustos() {
+            localStorage.setItem(STORAGE_CUSTOS, JSON.stringify(custosFixos));
+        }
         
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -504,31 +502,66 @@
         const fmtBRL = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
         const fmtDate = (d) => d ? d.split('-').reverse().join('/') : '-';
 
-        // --- DASHBOARD DINÂMICO ---
-        function updateDashboard() {
-            const fat = appData.producao.reduce((acc, p) => acc + p.faturamento, 0);
-            const fixo = appData.custosFixos.reduce((acc, c) => acc + c.valorMensal, 0);
-            let cVendido = 0;
+        // --- DASHBOARD FINANCEIRO REAL ---
+        function calcularFaturamento() {
+            return appData.producao.reduce((acc, p) => acc + (p.faturamento || 0), 0);
+        }
+
+        function atualizarDashboardFinanceiro() {
+            const faturamento = calcularFaturamento();
+            const custosFixosTotal = custosFixos.reduce((acc, c) => acc + (c.valor || 0), 0);
+            
+            // Cálculo de CMV Global para o Dashboard
+            let custoVendido = 0;
             appData.producao.forEach(p => {
                 const f = appData.fichas.find(x => x.lancheId === p.lancheId);
-                if (f) cVendido += calcularCustoFicha(f.id) * p.quantidadeVendida;
+                if (f) {
+                    const cLanche = f.itens.reduce((accIt, item) => {
+                        const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
+                        if (!ing) return accIt;
+                        return accIt + ((ing.precoCompra / ing.quantidadeCompra) * item.quantidadeUsada);
+                    }, 0);
+                    custoVendido += cLanche * p.quantidadeVendida;
+                }
             });
-            const cmvG = fat > 0 ? (cVendido / fat) * 100 : 0;
-            const luc = fat - cVendido - fixo;
+            const cmvG = faturamento > 0 ? (custoVendido / faturamento) * 100 : 0;
+            const lucroLiquido = faturamento - custoVendido - custosFixosTotal;
 
             document.getElementById('dashboard-stats').innerHTML = `
-                <div class="stat"><label>Faturamento</label><strong>${fmtBRL(fat)}</strong></div>
-                <div class="stat" style="border-left-color: var(--success)"><label>CMV Global</label><strong>${cmvG.toFixed(1)}%</strong></div>
-                <div class="stat" style="border-left-color: var(--danger)"><label>Custos Fixos</label><strong>${fmtBRL(fixo)}</strong></div>
-                <div class="stat" style="border-left-color: #8b5cf6"><label>Lucro Líquido</label><strong>${fmtBRL(luc)}</strong></div>
+                <div class="stat">
+                    <small>Faturamento</small>
+                    <strong>${fmtBRL(faturamento)}</strong>
+                </div>
+                <div class="stat" style="border-left-color: var(--success)">
+                    <small>CMV Global</small>
+                    <strong>${cmvG.toFixed(1)}%</strong>
+                </div>
+                <div class="stat" style="border-left-color: var(--danger)">
+                    <small>Custos Fixos</small>
+                    <strong>${fmtBRL(custosFixosTotal)}</strong>
+                </div>
+                <div class="stat" style="border-left-color: #8b5cf6">
+                    <small>Resultado Líquido</small>
+                    <strong style="color:${lucroLiquido >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                        ${fmtBRL(lucroLiquido)}
+                    </strong>
+                </div>
             `;
             
+            renderAlertasCMV();
+        }
+
+        function renderAlertasCMV() {
             const alerts = document.querySelector('#table-alertas-cmv tbody'); 
             alerts.innerHTML = '';
             appData.lanches.forEach(l => {
                 const f = appData.fichas.find(x => x.lancheId === l.id);
                 if (f) {
-                    const c = (calcularCustoFicha(f.id) / (l.precoVenda || 1)) * 100;
+                    const custo = f.itens.reduce((acc, item) => {
+                        const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
+                        return ing ? acc + ((ing.precoCompra / ing.quantidadeCompra) * item.quantidadeUsada) : acc;
+                    }, 0);
+                    const c = (custo / (l.precoVenda || 1)) * 100;
                     if (c > appData.configuracoes.cmvAlvo) {
                         alerts.innerHTML += `<tr><td>${l.nome}</td><td class="text-danger">${c.toFixed(1)}%</td><td><span class="badge badge-warning">Alto</span></td></tr>`;
                     }
@@ -537,7 +570,96 @@
             if (!alerts.innerHTML) alerts.innerHTML = '<tr><td colspan="3" style="text-align:center">Sem alertas</td></tr>';
         }
 
-        // --- INGREDIENTES ---
+        // --- CRUD CUSTOS FIXOS (LÓGICA SOLICITADA) ---
+        const custosContainer = document.getElementById('custos-container');
+        const modalCusto = document.getElementById('modal-custo');
+        const formCusto = document.getElementById('form-custo');
+
+        document.getElementById('btn-add-custo').addEventListener('click', () => abrirModalCusto());
+        document.getElementById('btn-cancel-custo').addEventListener('click', fecharModalCusto);
+
+        function renderCustos() {
+            custosContainer.innerHTML = '';
+
+            if (!custosFixos.length) {
+                custosContainer.innerHTML = '<p style="padding:16px;color:var(--muted)">Nenhum custo cadastrado.</p>';
+                return;
+            }
+
+            custosFixos.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'custo-card';
+
+                div.innerHTML = `
+                    <strong>${c.descricao}</strong>
+                    <small>${c.categoria}</small>
+                    <strong>R$ ${c.valor.toFixed(2)}</strong>
+
+                    <div class="custo-actions">
+                        <button class="btn btn-ghost btn-edit">✏️ Editar</button>
+                        <button class="btn btn-danger btn-del">🗑️ Excluir</button>
+                    </div>
+                `;
+
+                div.querySelector('.btn-edit').onclick = () => abrirModalCusto(c);
+                div.querySelector('.btn-del').onclick = () => excluirCusto(c.id);
+
+                custosContainer.appendChild(div);
+            });
+
+            salvarCustos();
+            atualizarDashboardFinanceiro();
+        }
+
+        function abrirModalCusto(custo = null) {
+            modalCusto.classList.add('open');
+            if (custo) {
+                document.getElementById('custo-modal-title').innerText = 'Editar Custo';
+                document.getElementById('custo-id').value = custo.id;
+                document.getElementById('custo-desc').value = custo.descricao;
+                document.getElementById('custo-cat').value = custo.categoria;
+                document.getElementById('custo-valor').value = custo.valor;
+            } else {
+                document.getElementById('custo-modal-title').innerText = 'Novo Custo';
+                formCusto.reset();
+                document.getElementById('custo-id').value = '';
+            }
+        }
+
+        function fecharModalCusto() { modalCusto.classList.remove('open'); }
+
+        formCusto.addEventListener('submit', e => {
+            e.preventDefault();
+            const id = document.getElementById('custo-id').value;
+            const desc = document.getElementById('custo-desc').value;
+            const cat = document.getElementById('custo-cat').value;
+            const valor = parseFloat(document.getElementById('custo-valor').value);
+
+            if (id) {
+                const custo = custosFixos.find(c => c.id === id);
+                custo.descricao = desc;
+                custo.categoria = cat;
+                custo.valor = valor;
+            } else {
+                custosFixos.push({ id: crypto.randomUUID(), descricao: desc, categoria: cat, valor });
+            }
+
+            fecharModalCusto();
+            renderCustos();
+            salvarCustos();
+            atualizarDashboardFinanceiro();
+            showToast("Custos atualizados!");
+        });
+
+        function excluirCusto(id) {
+            if (!confirm('Excluir este custo?')) return;
+            custosFixos = custosFixos.filter(c => c.id !== id);
+            renderCustos();
+            salvarCustos();
+            atualizarDashboardFinanceiro();
+        }
+
+        // --- OUTRAS FUNÇÕES (RESTAURADAS) ---
         function renderIngredientes() {
             const search = document.getElementById('search-ingrediente').value.toLowerCase();
             const tbody = document.querySelector('#table-ingredientes tbody');
@@ -572,7 +694,7 @@
             const idx = appData.ingredientes.findIndex(i => i.id === id);
             if (idx > -1) appData.ingredientes[idx] = obj;
             else appData.ingredientes.push(obj);
-            save(); closeModals(); renderIngredientes(); showToast("Salvo!");
+            save(); closeModals(); renderIngredientes(); showToast("Insumo salvo!");
         }
 
         function deleteIngrediente(id) { if (confirm("Excluir?")) { appData.ingredientes = appData.ingredientes.filter(i => i.id !== id); save(); renderIngredientes(); } }
@@ -588,7 +710,6 @@
             document.getElementById('modal-ingrediente').classList.add('open');
         }
 
-        // --- FICHAS ---
         function renderFichas() {
             const tbody = document.querySelector('#table-fichas tbody');
             tbody.innerHTML = '';
@@ -665,7 +786,6 @@
 
         function deleteFicha(id) { if (confirm("Excluir ficha?")) { appData.fichas = appData.fichas.filter(f => f.id !== id); save(); renderFichas(); } }
 
-        // --- LANCHES ---
         function renderResumoLanches() {
             const tbody = document.querySelector('#table-resumo-lanches tbody');
             tbody.innerHTML = '';
@@ -677,7 +797,6 @@
             });
         }
 
-        // --- PRODUÇÃO ---
         function renderProducao() {
             const tbody = document.querySelector('#table-vendas tbody');
             tbody.innerHTML = '';
@@ -711,7 +830,7 @@
                         }
                     });
                 }
-                save(); renderProducao(); updateDashboard(); showToast("CSV Importado!");
+                save(); renderProducao(); atualizarDashboardFinanceiro(); showToast("CSV Importado!");
                 fileInput.value = '';
             };
             reader.readAsText(f);
@@ -737,118 +856,52 @@
             const q = parseInt(document.getElementById('prod-qtd').value);
             const p = parseFloat(document.getElementById('prod-preco').value);
             appData.producao.push({ id: crypto.randomUUID(), dataISO: document.getElementById('prod-data').value, lancheId: lid, quantidadeVendida: q, precoUnitario: p, faturamento: q * p });
-            save(); closeModals(); renderProducao(); updateDashboard(); showToast("Lançado!");
+            save(); closeModals(); renderProducao(); atualizarDashboardFinanceiro(); showToast("Lançado!");
         }
 
-        function deleteProducao(id) { if (confirm("Remover?")) { appData.producao = appData.producao.filter(p => p.id !== id); save(); renderProducao(); updateDashboard(); } }
+        function deleteProducao(id) { if (confirm("Remover?")) { appData.producao = appData.producao.filter(p => p.id !== id); save(); renderProducao(); atualizarDashboardFinanceiro(); } }
 
-        // --- CUSTOS FIXOS (NOVA LÓGICA) ---
-        const custosContainer = document.getElementById('custos-container');
-        const modalCusto = document.getElementById('modal-custo');
-        const formCusto = document.getElementById('form-custo');
-
-        document.getElementById('btn-add-custo').addEventListener('click', () => abrirModalCusto());
-        document.getElementById('btn-cancel-custo').addEventListener('click', fecharModalCusto);
-
-        function renderCustos() {
-            custosContainer.innerHTML = '';
-
-            if (!appData.custosFixos.length) {
-                custosContainer.innerHTML = '<p style="padding:16px;color:var(--muted)">Nenhum custo cadastrado.</p>';
-                return;
-            }
-
-            appData.custosFixos.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'custo-card';
-
-                div.innerHTML = `
-                    <strong>${c.descricao}</strong>
-                    <small>${c.categoria}</small>
-                    <strong>${fmtBRL(c.valorMensal)}</strong>
-
-                    <div class="custo-actions">
-                        <button class="btn btn-ghost btn-edit btn-sm">✏️ Editar</button>
-                        <button class="btn btn-danger btn-del btn-sm">🗑️ Excluir</button>
-                    </div>
-                `;
-
-                div.querySelector('.btn-edit').onclick = () => abrirModalCusto(c);
-                div.querySelector('.btn-del').onclick = () => excluirCusto(c.id);
-
-                custosContainer.appendChild(div);
-            });
-        }
-
-        function abrirModalCusto(custo = null) {
-            modalCusto.classList.add('open');
-            if (custo) {
-                document.getElementById('custo-modal-title').innerText = 'Editar Custo';
-                document.getElementById('custo-id').value = custo.id;
-                document.getElementById('custo-desc').value = custo.descricao;
-                document.getElementById('custo-cat').value = custo.categoria;
-                document.getElementById('custo-valor').value = custo.valorMensal;
-            } else {
-                document.getElementById('custo-modal-title').innerText = 'Novo Custo';
-                formCusto.reset();
-                document.getElementById('custo-id').value = '';
-            }
-        }
-
-        function fecharModalCusto() { modalCusto.classList.remove('open'); }
-
-        formCusto.addEventListener('submit', e => {
-            e.preventDefault();
-            const id = document.getElementById('custo-id').value;
-            const desc = document.getElementById('custo-desc').value;
-            const cat = document.getElementById('custo-cat').value;
-            const valor = parseFloat(document.getElementById('custo-valor').value);
-
-            if (id) {
-                const custo = appData.custosFixos.find(c => c.id === id);
-                custo.descricao = desc;
-                custo.categoria = cat;
-                custo.valorMensal = valor;
-            } else {
-                appData.custosFixos.push({ id: crypto.randomUUID(), descricao: desc, categoria: cat, valorMensal: valor });
-            }
-
-            save();
-            fecharModalCusto();
-            renderCustos();
-            updateDashboard();
-            showToast("Custos atualizados!");
-        });
-
-        function excluirCusto(id) {
-            if (!confirm('Excluir este custo?')) return;
-            appData.custosFixos = appData.custosFixos.filter(c => c.id !== id);
-            save();
-            renderCustos();
-            updateDashboard();
-        }
-
-        // --- SISTEMA ---
         function saveConfigs() { appData.configuracoes.cmvAlvo = parseFloat(document.getElementById('cfg-cmv-alvo').value); save(); showToast("Metas atualizadas!"); }
+        
         function openModalFicha() {
             document.getElementById('ficha-lanche-nome').value = ''; document.getElementById('ficha-preco-venda').value = '';
             document.getElementById('ficha-itens-container').innerHTML = ''; addFichaItemRow();
             document.getElementById('modal-ficha').classList.add('open');
         }
+        
         function closeModals() { 
             document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); 
         }
-        function resetApp() { if (confirm("Deseja apagar TUDO?")) { localStorage.clear(); location.reload(); } }
-        function exportData() { const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'}); const url = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = url; l.download = 'backup_burgermaster.json'; l.click(); }
+        
+        function resetApp() { 
+            if (confirm("Deseja apagar TUDO?")) { 
+                localStorage.clear(); 
+                location.reload(); 
+            } 
+        }
+        
+        function exportData() { 
+            const blobData = { ...appData, custosFixos };
+            const blob = new Blob([JSON.stringify(blobData)], {type: 'application/json'}); 
+            const url = URL.createObjectURL(blob); 
+            const l = document.createElement('a'); 
+            l.href = url; l.download = 'backup_burgermaster.json'; l.click(); 
+        }
+        
         function importData(e) {
             const r = new FileReader();
-            r.onload = (evt) => { appData = JSON.parse(evt.target.result); save(); location.reload(); };
+            r.onload = (evt) => { 
+                const data = JSON.parse(evt.target.result);
+                if(data.custosFixos) custosFixos = data.custosFixos;
+                appData = data; 
+                save(); salvarCustos(); location.reload(); 
+            };
             r.readAsText(e.target.files[0]);
         }
 
         window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModals(); }
 
-        // Inicializar
+        // Inicializar aplicação
         init();
     </script>
 </body>
