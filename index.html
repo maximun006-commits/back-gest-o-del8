@@ -3,23 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BurgerMaster Pro</title>
+    <title>BurgerMaster Pro - Neon Edition</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff8c00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Bibliotecas Externas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    
     <style>
         :root {
-            --primary: #f59e0b;
-            --secondary: #1f2937;
-            --bg: #f3f4f6;
-            --card: #fff;
-            --text: #111827;
-            --muted: #6b7280;
-            --border: #e5e7eb;
-            --danger: #ef4444;
-            --success: #10b981;
+            --primary: #ff8c00; /* Laranja Neon */
+            --secondary: #000000;
+            --bg: #050505;
+            --card: #111111;
+            --text: #e0e0e0;
+            --muted: #888888;
+            --border: #222222;
+            --danger: #ff0033; /* Vermelho Neon */
+            --success: #33ff00; /* Verde Neon */
+            --neon-glow: 0 0 10px rgba(255, 140, 0, 0.5);
+            --neon-border: 0 0 5px rgba(255, 140, 0, 0.3);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 
-        body { background: var(--bg); color: var(--text); }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; }
 
         .hidden { display: none !important; }
 
@@ -35,9 +48,11 @@
             justify-content: space-between;
             padding: 0 16px;
             z-index: 1000;
+            border-bottom: 1px solid var(--primary);
+            box-shadow: 0 0 15px rgba(255, 140, 0, 0.2);
         }
 
-        .header h1 { font-size: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .header h1 { font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; text-shadow: 0 0 8px var(--primary); text-transform: uppercase; letter-spacing: 1px; }
         .header button {
             background: none; border: none;
             font-size: 1.4rem; color: #fff;
@@ -51,37 +66,45 @@
             left: -260px;
             width: 260px;
             height: calc(100vh - 56px);
-            background: var(--secondary);
+            background: #080808;
             padding: 12px;
             transition: .3s;
             z-index: 999;
             overflow-y: auto;
+            border-right: 1px solid var(--border);
         }
 
-        .sidebar.open { left: 0; }
+        .sidebar.open { left: 0; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
 
         .nav-item {
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             margin-bottom: 6px;
             cursor: pointer;
-            color: #d1d5db;
+            color: #aaa;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 0.95rem;
+            gap: 12px;
+            font-size: 0.9rem;
             transition: 0.2s;
+            border: 1px solid transparent;
         }
 
-        .nav-item.active,
-        .nav-item:hover {
-            background: var(--primary);
+        .nav-item.active {
+            background: rgba(255, 140, 0, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: inset 0 0 10px rgba(255, 140, 0, 0.1);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
             color: #fff;
         }
 
         /* MAIN */
         .main {
-            padding: 72px 12px 16px;
+            padding: 72px 16px 16px;
             max-width: 1200px;
             margin: auto;
             transition: padding 0.3s;
@@ -90,124 +113,146 @@
         /* CARDS */
         .card {
             background: var(--card);
-            padding: 16px;
+            padding: 20px;
             border-radius: 12px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 6px rgba(0,0,0,.08);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
 
         .card-title {
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.9rem;
         }
 
         /* BUTTONS */
         .btn {
-            padding: 10px 14px;
+            padding: 10px 16px;
             border-radius: 8px;
-            border: none;
+            border: 1px solid var(--primary);
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
+            font-weight: 700;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            transition: 0.2s;
+            gap: 8px;
+            transition: 0.3s;
+            background: transparent;
+            color: var(--primary);
+            text-transform: uppercase;
         }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-        .btn-danger { background: var(--danger); color: #fff; }
-        .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+        .btn-primary { 
+            background: var(--primary); 
+            color: #000; 
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.4);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.6);
+            transform: translateY(-1px);
+        }
+        .btn-ghost { border-color: var(--border); color: var(--muted); }
+        .btn-danger { border-color: var(--danger); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: #fff; box-shadow: 0 0 15px var(--danger); }
 
         /* STATS */
         .stats {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .stat {
-            background: #fff;
-            padding: 12px;
+            background: var(--card);
+            padding: 16px;
             border-radius: 10px;
-            border-left: 4px solid var(--primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            border-bottom: 2px solid var(--primary);
+            transition: 0.3s;
         }
-        .stat small { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
-        .stat strong { font-size: 1.1rem; font-weight: 700; display: block; }
+        .stat:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: var(--neon-glow); }
+        .stat small { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 600; }
+        .stat strong { font-size: 1rem; font-weight: 800; display: block; color: #fff; }
+
+        /* CHART WRAPPER */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+            margin-top: 10px;
+        }
 
         /* TABLE */
-        .table-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 0.9rem; }
-        th { background: #f9fafb; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
-        th, td { padding: 12px; border-bottom: 1px solid var(--border); }
-        tr:last-child td { border-bottom: none; }
-
-        /* FORMS */
-        .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--muted); }
-        input, select {
-            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-        input:focus { border-color: var(--primary); }
-
-        /* CARDS DE CUSTO */
-        .custo-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,.08);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            border: 1px solid var(--border);
-        }
-        .custo-card strong { font-size: 1rem; }
-        .custo-card small { color: var(--muted); }
-        .custo-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .table-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; background: #0a0a0a; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 0.85rem; }
+        th { background: #151515; text-align: left; font-size: 0.7rem; text-transform: uppercase; color: var(--primary); padding: 12px; letter-spacing: 1px; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); color: #ccc; }
+        tr:hover td { background: rgba(255, 140, 0, 0.03); color: #fff; }
 
         /* MODAL */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 16px;
+            background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 16px;
+            backdrop-filter: blur(4px);
         }
-        .modal-content { background: #fff; padding: 24px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        .modal.open { display: flex; }
+        .modal-content { background: var(--card); padding: 24px; border-radius: 16px; width: 100%; max-width: 500px; border: 1px solid var(--primary); box-shadow: 0 0 30px rgba(255, 140, 0, 0.2); }
+        
+        /* CORREÇÃO CRÍTICA: EXIBIÇÃO DO MODAL */
+        .modal.open {
+            display: flex;
+        }
 
-        /* TOAST */
+        .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--primary); text-transform: uppercase; }
+        input, select {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #1a1a1a; color: #fff; outline: none; transition: 0.2s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(255, 140, 0, 0.3); }
+
+        .custo-card {
+            background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; transition: 0.3s;
+        }
+        .custo-card:hover { border-color: var(--primary); box-shadow: var(--neon-glow); }
+
+        /* BADGES */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        .badge-success { background: rgba(51, 255, 0, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .badge-danger { background: rgba(255, 0, 51, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .badge-warning { background: rgba(255, 140, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+
         #toast {
-            position: fixed; bottom: 20px; right: 20px; background: var(--secondary); color: #fff;
-            padding: 12px 20px; border-radius: 8px; display: none; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+            position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: #000;
+            padding: 12px 24px; border-radius: 8px; display: none; z-index: 3000; font-weight: 700; box-shadow: 0 0 20px var(--primary);
         }
 
-        /* DESKTOP */
         @media(min-width:900px){
             .header { display: none; }
             .sidebar { left: 0; top: 0; height: 100vh; }
-            .main { padding: 24px 24px 24px 284px; }
+            .main { padding: 30px 30px 30px 290px; }
             .stats { grid-template-columns: repeat(5, 1fr); }
-            .modal-content { padding: 32px; }
+            .chart-container { height: 320px; }
         }
     </style>
 </head>
 <body>
 
     <header class="header">
-        <h1>🍔 BurgerMaster Pro</h1>
+        <h1 id="header-title">🍔 BurgerMaster Pro</h1>
         <button id="btn-menu">☰</button>
     </header>
 
     <aside class="sidebar" id="sidebar">
+        <div id="sidebar-title" style="padding: 20px 14px; color: var(--primary); font-weight: 900; font-size: 1.2rem; letter-spacing: 1px;">BURGERMASTER</div>
         <div class="nav-item active" data-module="indicadores">📊 Indicadores</div>
         <div class="nav-item" data-module="ingredientes">🥬 Ingredientes</div>
+        <div class="nav-item" data-module="estoque">📦 Estoque</div>
         <div class="nav-item" data-module="fichas">📋 Fichas Técnicas</div>
         <div class="nav-item" data-module="lanches">🥪 Cardápio</div>
         <div class="nav-item" data-module="producao">💰 Produção</div>
@@ -216,541 +261,398 @@
     </aside>
 
     <main class="main">
-        
-        <!-- MÓDULO: INDICADORES -->
+        <!-- INDICADORES -->
         <section id="mod-indicadores" class="module">
+            <div class="card-title">Dashboard Executivo <button class="btn btn-primary btn-sm" id="btn-relatorio-pdf">📄 Gerar PDF</button></div>
             <div class="stats" id="dashboard-stats"></div>
             <div class="grid">
-                <div class="card">
-                    <div class="card-title">Alertas de CMV</div>
-                    <div class="table-wrap">
-                        <table id="table-alertas-cmv">
-                            <thead><tr><th>Lanche</th><th>CMV Atual</th><th>Status</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+                <div class="card"><div class="card-title">Faturamento Mensal</div><div class="chart-container"><canvas id="graficoMensal"></canvas></div></div>
+                <div class="card"><div class="card-title">Alertas de Estoque</div><div id="alertas-estoque"></div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Análise de CMV Crítico</div>
+                <div class="table-wrap"><table id="table-alertas-cmv"><thead><tr><th>Lanche</th><th>CMV Real</th><th>Status</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
 
-        <!-- MÓDULO: INGREDIENTES -->
+        <!-- ESTOQUE -->
+        <section id="mod-estoque" class="module hidden">
+            <div class="card"><div class="card-title">📦 Controle de Estoque</div><div id="estoque-container" class="grid"></div></div>
+        </section>
+
+        <!-- INGREDIENTES -->
         <section id="mod-ingredientes" class="module hidden">
             <div class="card">
-                <div class="card-title">
-                    Insumos
-                    <button class="btn btn-primary" onclick="openModalIngrediente()">+ Novo</button>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="search-ingrediente" placeholder="🔍 Buscar insumo..." oninput="renderIngredientes()">
-                </div>
-                <div class="table-wrap">
-                    <table id="table-ingredientes">
-                        <thead><tr><th>Nome</th><th>Un.</th><th>Preço Compra</th><th>Custo Unit.</th><th>Ações</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div class="card-title">Insumos <button class="btn btn-primary" id="btn-novo-ingrediente">+ Novo</button></div>
+                <div class="table-wrap"><table id="table-ingredientes"><thead><tr><th>Nome</th><th>Un.</th><th>Preço</th><th>Mínimo</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
 
-        <!-- MÓDULO: FICHAS TÉCNICAS -->
+        <!-- FICHAS -->
         <section id="mod-fichas" class="module hidden">
             <div class="card">
-                <div class="card-title">
-                    Fichas Técnicas
-                    <button class="btn btn-primary" onclick="openModalFicha()">+ Criar Ficha</button>
-                </div>
-                <div class="table-wrap">
-                    <table id="table-fichas">
-                        <thead><tr><th>Lanche</th><th>Itens</th><th>Custo Produção</th><th>Ações</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div class="card-title">Engenharia de Cardápio <button class="btn btn-primary" id="btn-nova-ficha">+ Criar</button></div>
+                <div class="table-wrap"><table id="table-fichas"><thead><tr><th>Lanche</th><th>Itens</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
 
-        <!-- MÓDULO: CARDÁPIO -->
+        <!-- CARDÁPIO -->
         <section id="mod-lanches" class="module hidden">
             <div class="card">
-                <div class="card-title">Rentabilidade do Cardápio</div>
-                <div class="table-wrap">
-                    <table id="table-resumo-lanches">
-                        <thead><tr><th>Lanche</th><th>Custo</th><th>Venda</th><th>CMV %</th><th>Status</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div class="card-title">Rentabilidade por Produto</div>
+                <div class="table-wrap"><table id="table-resumo-lanches"><thead><tr><th>Lanche</th><th>Custo</th><th>Venda</th><th>CMV %</th><th>Status</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
 
-        <!-- MÓDULO: PRODUÇÃO -->
+        <!-- PRODUÇÃO -->
         <section id="mod-producao" class="module hidden">
             <div class="card">
-                <div class="card-title">
-                    Histórico de Vendas
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importHistorico').click()">📁 CSV</button>
-                        <input type="file" id="importHistorico" class="hidden" accept=".csv" onchange="handleHistoricoCSV(event)">
-                        <button class="btn btn-primary btn-sm" onclick="openModalProducao()">+ Lançar</button>
-                    </div>
-                </div>
-                <div class="table-wrap">
-                    <table id="table-vendas">
-                        <thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Total</th><th>Ações</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div class="card-title">Vendas <div style="display:flex; gap:8px;"><button class="btn btn-ghost btn-sm" id="btn-import-csv">📁 CSV</button><input type="file" id="importHistorico" class="hidden" accept=".csv"><button class="btn btn-primary btn-sm" id="btn-nova-venda">+ Lançar</button></div></div>
+                <div class="table-wrap"><table id="table-vendas"><thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Total</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
 
-        <!-- MÓDULO: CUSTOS -->
+        <!-- CUSTOS -->
         <section id="mod-custos" class="module hidden">
             <div class="card">
-                <div class="card-title">
-                    Custos Operacionais
-                    <button class="btn btn-primary" id="btn-add-custo">+ Novo</button>
-                </div>
+                <div class="card-title">Gastos Operacionais <button class="btn btn-primary" id="btn-add-custo">+ Novo</button></div>
                 <div id="custos-container" class="grid"></div>
             </div>
         </section>
 
-        <!-- MÓDULO: CONFIGURAÇÕES -->
+        <!-- CONFIG -->
         <section id="mod-backup" class="module hidden">
             <div class="grid">
                 <div class="card">
-                    <div class="card-title">Metas</div>
+                    <div class="card-title">Personalização</div>
+                    <div class="form-group">
+                        <label>Nome da Loja</label>
+                        <input type="text" id="cfg-nome-loja" placeholder="Ex: BurgerMaster Pro">
+                    </div>
                     <div class="form-group">
                         <label>CMV Alvo (%)</label>
-                        <input type="number" id="cfg-cmv-alvo" step="0.01" onchange="saveConfigs()">
+                        <input type="number" id="cfg-cmv-alvo" step="0.01">
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-title">Sistema</div>
-                    <div style="display:grid; gap:8px;">
-                        <button class="btn btn-ghost" onclick="exportData()">💾 Backup JSON</button>
-                        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">📂 Restaurar Dados</button>
-                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
-                        <button class="btn btn-danger" onclick="resetApp()">⚠️ Limpar Tudo</button>
-                    </div>
-                </div>
+                <div class="card"><div class="card-title">Gerenciamento de Dados</div><div style="display:grid; gap:8px;"><button class="btn btn-ghost" id="btn-backup-json">💾 Backup</button><button class="btn btn-ghost" id="btn-restaurar">📂 Restaurar</button><input type="file" id="importFile" class="hidden" accept=".json"><button class="btn btn-danger" id="btn-reset-total">⚠️ Limpar Tudo</button></div></div>
             </div>
         </section>
     </main>
 
     <!-- MODAIS -->
-    <div id="modal-ingrediente" class="modal">
-        <div class="modal-content">
-            <h3>Insumo</h3>
-            <form onsubmit="saveIngrediente(event)">
-                <input type="hidden" id="ing-id">
-                <div class="form-group"><label>Nome</label><input type="text" id="ing-nome" required></div>
-                <div class="grid">
-                    <div class="form-group"><label>Unidade (kg, un, g)</label><input type="text" id="ing-unidade" required></div>
-                    <div class="form-group"><label>Qtd Compra</label><input type="number" id="ing-qtd" step="0.001" required></div>
-                </div>
-                <div class="form-group"><label>Preço Pago (R$)</label><input type="number" id="ing-preco" step="0.01" required></div>
-                <div class="form-group"><label>Data</label><input type="date" id="ing-data" required></div>
-                <div style="display:flex; justify-content:flex-end; gap:8px;">
-                    <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div id="modal-ingrediente" class="modal"><div class="modal-content"><h3>Novo Insumo</h3><form id="form-ingrediente"><input type="hidden" id="ing-id"><div class="form-group"><label>Nome</label><input type="text" id="ing-nome" required></div><div class="grid"><div class="form-group"><label>Unidade</label><input type="text" id="ing-unidade" required></div><div class="form-group"><label>Qtd Compra</label><input type="number" id="ing-qtd" step="0.001" required></div></div><div class="grid"><div class="form-group"><label>Preço Pago</label><input type="number" id="ing-preco" step="0.01" required></div><div class="form-group"><label>Mínimo Estoque</label><input type="number" id="ing-min" step="0.001"></div></div><div class="form-group"><label>Data</label><input type="date" id="ing-data" required></div><div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Cancelar</button><button type="submit" class="btn btn-primary">Gravar</button></div></form></div></div>
 
-    <div id="modal-ficha" class="modal">
-        <div class="modal-content" style="max-width:700px;">
-            <h3>Ficha Técnica</h3>
-            <div class="form-group"><label>Nome do Lanche</label><input type="text" id="ficha-lanche-nome"></div>
-            <div class="form-group"><label>Preço de Venda (R$)</label><input type="number" id="ficha-preco-venda" step="0.01"></div>
-            <hr style="margin:16px 0; border:none; border-top:1px solid var(--border);">
-            <div id="ficha-itens-container"></div>
-            <button class="btn btn-ghost btn-sm" onclick="addFichaItemRow()">+ Adicionar Item</button>
-            <div style="margin:20px 0; padding:12px; background:#f9fafb; border-radius:8px; text-align:right;">
-                <strong>Custo Total: <span id="ficha-total-live">R$ 0,00</span></strong>
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:8px;">
-                <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
-                <button type="button" class="btn btn-primary" onclick="saveFicha()">Salvar Ficha</button>
-            </div>
-        </div>
-    </div>
+    <div id="modal-ficha" class="modal"><div class="modal-content" style="max-width:700px;"><h3>Ficha Técnica</h3><div class="form-group"><label>Lanche</label><input type="text" id="ficha-lanche-nome" required></div><div class="form-group"><label>Preço Venda</label><input type="number" id="ficha-preco-venda" step="0.01" required></div><div id="ficha-itens-container"></div><button class="btn btn-ghost btn-sm" type="button" onclick="addFichaItemRow()">+ Insumo</button><div style="margin:15px 0; text-align:right;"><strong>CUSTO: <span id="ficha-total-live" style="color:var(--primary)">R$ 0,00</span></strong></div><div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Fechar</button><button type="button" class="btn btn-primary" onclick="saveFicha()">Salvar</button></div></div></div>
 
-    <div id="modal-producao" class="modal">
-        <div class="modal-content">
-            <h3>Lançar Venda</h3>
-            <form onsubmit="saveProducao(event)">
-                <div class="form-group"><label>Data</label><input type="date" id="prod-data" required></div>
-                <div class="form-group"><label>Produto</label><select id="prod-lanche-id" required onchange="updateProdPrecoDefault()"></select></div>
-                <div class="grid">
-                    <div class="form-group"><label>Qtd</label><input type="number" id="prod-qtd" min="1" value="1" required></div>
-                    <div class="form-group"><label>Preço Unit.</label><input type="number" id="prod-preco" step="0.01" required></div>
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:8px;">
-                    <button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button>
-                    <button type="submit" class="btn btn-primary">Lançar</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div id="modal-producao" class="modal"><div class="modal-content"><h3>Nova Venda</h3><form id="form-venda"><div class="form-group"><label>Data</label><input type="date" id="prod-data" required></div><div class="form-group"><label>Lanche</label><select id="prod-lanche-id" required></select></div><div class="grid"><div class="form-group"><label>Qtd</label><input type="number" id="prod-qtd" min="1" required></div><div class="form-group"><label>Preço Unit.</label><input type="number" id="prod-preco" step="0.01" required></div></div><div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button><button type="submit" class="btn btn-primary">Lançar</button></div></form></div></div>
 
-    <div class="modal" id="modal-custo">
-        <div class="modal-content">
-            <h3 id="custo-modal-title">Novo Custo</h3>
-            <form id="form-custo">
-                <input type="hidden" id="custo-id">
-                
-                <label>Descrição</label>
-                <input type="text" id="custo-desc" required>
+    <div id="modal-custo" class="modal"><div class="modal-content"><h3 id="custo-modal-title">Novo Custo</h3><form id="form-custo"><input type="hidden" id="custo-id"><label>Descrição</label><input type="text" id="custo-desc" required><label>Categoria</label><select id="custo-cat"><option value="Fixo">Fixo</option><option value="Variável">Variável</option></select><label>Valor</label><input type="number" id="custo-valor" step="0.01" required><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:15px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div>
 
-                <label>Categoria</label>
-                <select id="custo-cat">
-                    <option value="Fixo">Fixo</option>
-                    <option value="Variável">Variável</option>
-                </select>
-
-                <label>Valor mensal (R$)</label>
-                <input type="number" id="custo-valor" step="0.01" required>
-
-                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
-                    <button type="button" class="btn btn-ghost" id="btn-cancel-custo">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="toast">Operação realizada!</div>
+    <div id="toast">Pronto!</div>
 
     <script>
-        // --- ESTRUTURA DE DADOS ---
-        const STORAGE_KEY = 'hamburgueria_app_v1';
-        const STORAGE_CUSTOS = 'burgermaster_custos';
-
+        // --- DATA E CONFIGS ---
+        const STORAGE_KEY = 'burgermaster_v3_unified_data';
+        
         let appData = {
             ingredientes: [
-                { id: "ing1", nome: "Pão Brioche", unidadeCompra: "un", quantidadeCompra: 250, precoCompra: 300.00, dataAtualizacao: "2025-07-10" },
-                { id: "ing2", nome: "Hambúrguer 150g", unidadeCompra: "grama", quantidadeCompra: 250, precoCompra: 10.00, dataAtualizacao: "2025-07-10" },
-                { id: "ing3", nome: "Queijo Cheddar", unidadeCompra: "fatia", quantidadeCompra: 400, precoCompra: 19.20, dataAtualizacao: "2025-07-10" },
-                { id: "ing8", nome: "Molho da Casa", unidadeCompra: "grama", quantidadeCompra: 150, precoCompra: 3.00, dataAtualizacao: "2025-07-10" }
+                { id: "ing1", nome: "Pão Brioche", unidade: "un", quantidadeCompra: 250, precoCompra: 300, estoqueAtual: 100, estoqueMinimo: 20, dataAtualizacao: "2025-07-10" }
             ],
             lanches: [ { id: "lan1", nome: "X-Burger", precoVenda: 18.00 } ],
-            fichas: [ { id: "fic1", lancheId: "lan1", itens: [{ ingredienteId: "ing1", quantidadeUsada: 1 }, { ingredienteId: "ing2", quantidadeUsada: 140 }, { ingredienteId: "ing3", quantidadeUsada: 2 }, { ingredienteId: "ing8", quantidadeUsada: 10 }] } ],
+            fichas: [ { id: "fic1", lancheId: "lan1", itens: [{ ingredienteId: "ing1", quantidadeUsada: 1 }] } ],
             producao: [],
-            configuracoes: { cmvAlvo: 35 }
+            custosFixos: [ { id: 'c1', descricao: 'Aluguel', categoria: 'Fixo', valor: 1200 } ],
+            configuracoes: { cmvAlvo: 35, nomeLoja: 'BurgerMaster Pro' }
         };
 
-        let custosFixos = JSON.parse(localStorage.getItem(STORAGE_CUSTOS)) || [
-            { id: 'c1', descricao: 'Aluguel', categoria: 'Fixo', valor: 1200 },
-            { id: 'c2', descricao: 'Internet', categoria: 'Fixo', valor: 150 }
-        ];
+        let graficoMensal = null;
 
-        // --- SISTEMA DE NAVEGAÇÃO ---
-        const sidebar = document.getElementById('sidebar');
-        const btnMenu = document.getElementById('btn-menu');
-
-        btnMenu.addEventListener('click', () => sidebar.classList.toggle('open'));
-
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const mod = item.dataset.module;
-                showModule(mod);
-            });
-        });
-
-        function showModule(modId) {
-            document.querySelectorAll('.module').forEach(m => m.classList.add('hidden'));
-            document.getElementById(`mod-${modId}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const activeItem = document.querySelector(`[data-module="${modId}"]`);
-            if(activeItem) activeItem.classList.add('active');
-            if (window.innerWidth < 900) sidebar.classList.remove('open');
-
-            if (modId === 'ingredientes') renderIngredientes();
-            if (modId === 'fichas') renderFichas();
-            if (modId === 'lanches') renderResumoLanches();
-            if (modId === 'producao') renderProducao();
-            if (modId === 'custos') renderCustos();
-            if (modId === 'indicadores') atualizarDashboardFinanceiro();
-        }
-
-        // --- CORE ---
-        function init() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) appData = JSON.parse(saved);
-            document.getElementById('cfg-cmv-alvo').value = appData.configuracoes.cmvAlvo;
-            renderCustos();
-            atualizarDashboardFinanceiro();
-        }
-
-        function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
-        function salvarCustos() { localStorage.setItem(STORAGE_CUSTOS, JSON.stringify(custosFixos)); }
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
-        }
-
+        // --- GLOBAL UI HELPERS ---
+        window.closeModals = () => { document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); };
+        window.showToast = (m) => { 
+            const t = document.getElementById('toast'); 
+            t.innerText = m; t.style.display='block'; 
+            setTimeout(()=>t.style.display='none', 2500); 
+        };
         const fmtBRL = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
-        const fmtDate = (d) => d ? d.split('-').reverse().join('/') : '-';
 
-        // --- LÓGICA FINANCEIRA ---
-        function calcularFaturamento() {
-            return appData.producao.reduce((acc, v) => acc + (v.faturamento || 0), 0);
+        // --- PERSISTÊNCIA ---
+        function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+
+        // --- ATUALIZAR NOME DA LOJA ---
+        function atualizarInterfaceNome() {
+            const nome = appData.configuracoes.nomeLoja || 'BurgerMaster Pro';
+            document.getElementById('header-title').innerText = '🍔 ' + nome;
+            document.getElementById('sidebar-title').innerText = nome.toUpperCase();
         }
 
-        function custosFixosTotal() {
-            return custosFixos.filter(c => c.categoria === 'Fixo').reduce((acc, c) => acc + (c.valor || 0), 0);
-        }
-
-        function custosVariaveisTotal() {
-            return custosFixos.filter(c => c.categoria === 'Variável').reduce((acc, c) => acc + (c.valor || 0), 0);
-        }
-
-        function calcularCMVmedio() {
-            return appData.configuracoes.cmvAlvo || 35;
-        }
-
-        function calcularPontoEquilibrio() {
-            const fixos = custosFixosTotal();
-            const cmv = calcularCMVmedio() / 100;
-            const margem = 1 - cmv;
-            return margem <= 0 ? 0 : fixos / margem;
-        }
-
-        function atualizarDashboardFinanceiro() {
-            const faturamento = calcularFaturamento();
-            const fixos = custosFixosTotal();
-            const variaveis = custosVariaveisTotal();
-            
-            // Cálculo do CPV (Custo dos Produtos Vendidos) real baseado nas fichas
-            let cpvReal = 0;
-            appData.producao.forEach(p => {
-                const f = appData.fichas.find(x => x.lancheId === p.lancheId);
-                if (f) cpvReal += calcularCustoFicha(f.id) * p.quantidadeVendida;
-            });
-
-            const lucroLiquido = faturamento - cpvReal - fixos - variaveis;
-            const pontoEquilibrio = calcularPontoEquilibrio();
-            const cmvGlobalPercent = faturamento > 0 ? (cpvReal / faturamento) * 100 : 0;
-
-            document.getElementById('dashboard-stats').innerHTML = `
-                <div class="stat"><small>Faturamento</small><strong>${fmtBRL(faturamento)}</strong></div>
-                <div class="stat"><small>Custos Fixos</small><strong>${fmtBRL(fixos)}</strong></div>
-                <div class="stat"><small>Custos Variáveis</small><strong>${fmtBRL(variaveis)}</strong></div>
-                <div class="stat"><small>Lucro Líquido</small><strong style="color:${lucroLiquido >= 0 ? '#10b981' : '#ef4444'}">${fmtBRL(lucroLiquido)}</strong></div>
-                <div class="stat"><small>Ponto de Equilíbrio</small><strong>${fmtBRL(pontoEquilibrio)}</strong></div>
-            `;
-            
-            renderAlertasCMV();
-        }
-
-        function renderAlertasCMV() {
-            const alerts = document.querySelector('#table-alertas-cmv tbody'); 
-            alerts.innerHTML = '';
-            appData.lanches.forEach(l => {
-                const f = appData.fichas.find(x => x.lancheId === l.id);
-                if (f) {
-                    const custo = calcularCustoFicha(f.id);
-                    const c = (custo / (l.precoVenda || 1)) * 100;
-                    if (c > appData.configuracoes.cmvAlvo) {
-                        alerts.innerHTML += `<tr><td>${l.nome}</td><td class="text-danger">${c.toFixed(1)}%</td><td><span class="badge badge-warning">Ajustar</span></td></tr>`;
-                    }
-                }
-            });
-            if (!alerts.innerHTML) alerts.innerHTML = '<tr><td colspan="3" style="text-align:center">Sem alertas</td></tr>';
-        }
-
-        // --- INGREDIENTES ---
-        function renderIngredientes() {
-            const search = document.getElementById('search-ingrediente').value.toLowerCase();
-            const tbody = document.querySelector('#table-ingredientes tbody');
-            tbody.innerHTML = '';
-            appData.ingredientes.filter(i => i.nome.toLowerCase().includes(search)).forEach(i => {
-                const cUnit = i.precoCompra / i.quantidadeCompra;
-                tbody.innerHTML += `<tr><td>${i.nome}</td><td>${i.unidadeCompra}</td><td>${fmtBRL(i.precoCompra)}</td><td>${fmtBRL(cUnit)}</td><td><button class="btn btn-ghost btn-sm" onclick="editIngrediente('${i.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="deleteIngrediente('${i.id}')">🗑️</button></td></tr>`;
-            });
-        }
-
-        function openModalIngrediente() {
-            document.getElementById('ing-id').value = '';
-            document.getElementById('ing-nome').value = '';
-            document.getElementById('ing-unidade').value = '';
-            document.getElementById('ing-qtd').value = '';
-            document.getElementById('ing-preco').value = '';
-            document.getElementById('ing-data').value = new Date().toISOString().split('T')[0];
-            document.getElementById('modal-ingrediente').classList.add('open');
-        }
-
-        function saveIngrediente(e) {
-            e.preventDefault();
-            const id = document.getElementById('ing-id').value || crypto.randomUUID();
-            const obj = {
-                id,
-                nome: document.getElementById('ing-nome').value,
-                unidadeCompra: document.getElementById('ing-unidade').value,
-                quantidadeCompra: parseFloat(document.getElementById('ing-qtd').value),
-                precoCompra: parseFloat(document.getElementById('ing-preco').value),
-                dataAtualizacao: document.getElementById('ing-data').value
-            };
-            const idx = appData.ingredientes.findIndex(i => i.id === id);
-            if (idx > -1) appData.ingredientes[idx] = obj;
-            else appData.ingredientes.push(obj);
-            save(); closeModals(); renderIngredientes(); showToast("Salvo!");
-        }
-
-        function deleteIngrediente(id) { if (confirm("Excluir?")) { appData.ingredientes = appData.ingredientes.filter(i => i.id !== id); save(); renderIngredientes(); } }
-
-        function editIngrediente(id) {
-            const i = appData.ingredientes.find(x => x.id === id);
-            document.getElementById('ing-id').value = i.id;
-            document.getElementById('ing-nome').value = i.nome;
-            document.getElementById('ing-unidade').value = i.unidadeCompra;
-            document.getElementById('ing-qtd').value = i.quantidadeCompra;
-            document.getElementById('ing-preco').value = i.precoCompra;
-            document.getElementById('ing-data').value = i.dataAtualizacao;
-            document.getElementById('modal-ingrediente').classList.add('open');
-        }
-
-        // --- FICHAS ---
-        function renderFichas() {
-            const tbody = document.querySelector('#table-fichas tbody');
-            tbody.innerHTML = '';
-            appData.fichas.forEach(f => {
-                const l = appData.lanches.find(x => x.id === f.lancheId);
-                const c = calcularCustoFicha(f.id);
-                tbody.innerHTML += `<tr><td><strong>${l?.nome || 'N/A'}</strong></td><td>${f.itens.length} itens</td><td>${fmtBRL(c)}</td><td><button class="btn btn-ghost btn-sm" onclick="editFicha('${f.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="deleteFicha('${f.id}')">🗑️</button></td></tr>`;
-            });
-        }
-
-        function calcularCustoFicha(fid) {
-            const f = appData.fichas.find(x => x.id === fid);
-            if (!f) return 0;
+        // --- CÁLCULOS FINANCEIROS ---
+        function custoLanche(lancheId) {
+            const f = appData.fichas.find(x => x.lancheId === lancheId);
+            if (!f || !f.itens) return 0;
             return f.itens.reduce((acc, item) => {
                 const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
-                if (!ing) return acc;
-                return acc + ((ing.precoCompra / ing.quantidadeCompra) * item.quantidadeUsada);
+                if (!ing || !ing.quantidadeCompra) return acc;
+                return acc + (ing.precoCompra / ing.quantidadeCompra) * item.quantidadeUsada;
             }, 0);
         }
 
-        function addFichaItemRow(ingId = '', qtd = '') {
-            const cont = document.getElementById('ficha-itens-container');
-            const rid = crypto.randomUUID();
-            const div = document.createElement('div');
-            div.className = 'grid'; div.style.marginBottom = '10px'; div.id = rid;
-            let opts = '<option value="">Insumo...</option>';
-            appData.ingredientes.forEach(ing => opts += `<option value="${ing.id}" ${ing.id === ingId ? 'selected' : ''}>${ing.nome}</option>`);
-            div.innerHTML = `<div style="grid-column: span 2"><select onchange="updateFichaLive()">${opts}</select></div><div><input type="number" step="0.001" placeholder="Qtd" value="${qtd}" oninput="updateFichaLive()"></div><div><button class="btn btn-danger btn-sm" onclick="document.getElementById('${rid}').remove(); updateFichaLive();">✕</button></div>`;
-            cont.appendChild(div);
-        }
-
-        function updateFichaLive() {
-            let t = 0;
-            const rows = document.getElementById('ficha-itens-container').children;
-            for (let r of rows) {
-                const s = r.querySelector('select');
-                const i = r.querySelector('input');
-                if (s?.value && i?.value) {
-                    const ing = appData.ingredientes.find(x => x.id === s.value);
-                    if (ing) t += (ing.precoCompra / ing.quantidadeCompra) * parseFloat(i.value);
+        function baixarEstoquePorVenda(lancheId, quantidadeVendida) {
+            const f = appData.fichas.find(x => x.lancheId === lancheId);
+            if (!f) return;
+            f.itens.forEach(item => {
+                const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
+                if (ing) {
+                    ing.estoqueAtual = (ing.estoqueAtual || 0) - (item.quantidadeUsada * quantidadeVendida);
                 }
-            }
-            document.getElementById('ficha-total-live').textContent = fmtBRL(t);
+            });
         }
 
-        function editFicha(id) {
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+        window.renderIngredientes = function() {
+            const tbody = document.querySelector('#table-ingredientes tbody');
+            if(!tbody) return;
+            tbody.innerHTML = appData.ingredientes.map(i => `
+                <tr>
+                    <td>${i.nome}</td><td>${i.unidade}</td><td>${fmtBRL(i.precoCompra)}</td><td>${i.estoqueMinimo}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm" onclick="editIngrediente('${i.id}')">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteIngrediente('${i.id}')">🗑️</button>
+                    </td>
+                </tr>`).join('');
+        };
+
+        window.renderFichas = function() {
+            const tbody = document.querySelector('#table-fichas tbody');
+            if(!tbody) return;
+            tbody.innerHTML = appData.fichas.map(f => {
+                const l = appData.lanches.find(x => x.id === f.lancheId);
+                return `<tr><td><strong>${l?.nome || 'N/A'}</strong></td><td>${f.itens.length} itens</td><td>${fmtBRL(custoLanche(f.lancheId))}</td><td><button class="btn btn-ghost btn-sm" onclick="editFicha('${f.id}')">✏️</button></td></tr>`;
+            }).join('');
+        };
+
+        window.renderResumoLanches = function() {
+            const tbody = document.querySelector('#table-resumo-lanches tbody');
+            if(!tbody) return;
+            tbody.innerHTML = appData.lanches.map(l => {
+                const c = custoLanche(l.id);
+                const cmv = l.precoVenda > 0 ? (c / l.precoVenda) * 100 : 0;
+                const status = cmv <= appData.configuracoes.cmvAlvo ? 'badge-success' : 'badge-danger';
+                return `<tr><td>${l.nome}</td><td>${fmtBRL(c)}</td><td>${fmtBRL(l.precoVenda)}</td><td><span class="badge ${status}">${cmv.toFixed(1)}%</span></td></tr>`;
+            }).join('');
+        };
+
+        window.renderProducao = function() {
+            const tbody = document.querySelector('#table-vendas tbody');
+            if(!tbody) return;
+            tbody.innerHTML = [...appData.producao].sort((a,b) => b.dataISO.localeCompare(a.dataISO)).map(p => {
+                const l = appData.lanches.find(x => x.id === p.lancheId);
+                return `<tr><td>${p.dataISO.split('-').reverse().join('/')}</td><td>${l?.nome || 'N/A'}</td><td>${p.quantidadeVendida}</td><td>${fmtBRL(p.faturamento)}</td><td><button class="btn btn-ghost btn-sm" onclick="deleteProducao('${p.id}')">🗑️</button></td></tr>`;
+            }).join('');
+        };
+
+        window.renderCustos = function() {
+            const container = document.getElementById('custos-container');
+            if(!container) return;
+            container.innerHTML = appData.custosFixos.map(c => `
+                <div class="custo-card">
+                    <strong>${c.descricao}</strong><small>${c.categoria}</small><strong>${fmtBRL(c.valor)}</strong>
+                    <div style="display:flex; gap:8px;"><button class="btn btn-ghost btn-sm" onclick="editCusto('${c.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteCusto('${c.id}')">🗑️</button></div>
+                </div>`).join('');
+            atualizarDashboard();
+        };
+
+        window.renderEstoque = function() {
+            const container = document.getElementById('estoque-container');
+            if(!container) return;
+            container.innerHTML = appData.ingredientes.map(i => {
+                const status = (i.estoqueAtual || 0) <= (i.estoqueMinimo || 0) ? 'badge-danger' : 'badge-success';
+                return `<div class="custo-card"><strong>${i.nome}</strong><small>Saldo: ${(i.estoqueAtual || 0).toFixed(1)} ${i.unidade}</small><strong><span class="badge ${status}">${(i.estoqueAtual || 0) <= (i.estoqueMinimo || 0) ? 'BAIXO' : 'OK'}</span></strong><button class="btn btn-ghost btn-sm" onclick="promptEntrada('${i.id}')">+ Entrada</button></div>`;
+            }).join('');
+        };
+
+        function atualizarDashboard() {
+            const fat = appData.producao.reduce((acc, v) => acc + (v.faturamento || 0), 0);
+            const fixos = appData.custosFixos.filter(c => c.categoria === 'Fixo').reduce((acc, c) => acc + (c.valor || 0), 0);
+            const variaveis = appData.custosFixos.filter(c => c.categoria === 'Variável').reduce((acc, c) => acc + (c.valor || 0), 0);
+            let cpv = 0;
+            appData.producao.forEach(p => cpv += custoLanche(p.lancheId) * p.quantidadeVendida);
+
+            const lucro = fat - cpv - fixos - variaveis;
+            const cmvMeta = appData.configuracoes.cmvAlvo / 100;
+            const pe = (1 - cmvMeta) > 0 ? fixos / (1 - cmvMeta) : 0;
+
+            const stats = document.getElementById('dashboard-stats');
+            if(stats) {
+                stats.innerHTML = `
+                    <div class="stat"><small>Vendas</small><strong>${fmtBRL(fat)}</strong></div>
+                    <div class="stat"><small>Custos Fixos</small><strong>${fmtBRL(fixos)}</strong></div>
+                    <div class="stat" style="border-bottom-color: #8b5cf6"><small>Lucro Real</small><strong style="color:${lucro >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtBRL(lucro)}</strong></div>
+                    <div class="stat"><small>P. Equilíbrio</small><strong>${fmtBRL(pe)}</strong></div>
+                `;
+            }
+            
+            const alertasE = appData.ingredientes.filter(i => (i.estoqueAtual || 0) <= (i.estoqueMinimo || 0));
+            const alertCont = document.getElementById('alertas-estoque');
+            if(alertCont) {
+                alertCont.innerHTML = alertasE.length ? alertasE.map(i => `<p style="color:var(--danger); font-size:0.8rem">⚠️ ${i.nome}: ${(i.estoqueAtual||0).toFixed(1)}</p>`).join('') : '<p style="color:var(--success); font-size:0.8rem">✅ Estoque em dia</p>';
+            }
+        }
+
+        window.gerarGraficoMensal = function() {
+            const ctx = document.getElementById('graficoMensal');
+            if (!ctx) return;
+            const mapa = {};
+            appData.producao.forEach(v => {
+                const d = new Date(v.dataISO);
+                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                mapa[key] = (mapa[key] || 0) + (v.faturamento || 0);
+            });
+            const sortedKeys = Object.keys(mapa).sort();
+            const labels = sortedKeys.map(k => k.split('-').reverse().join('/'));
+            const valores = sortedKeys.map(k => mapa[k]);
+            if (graficoMensal) graficoMensal.destroy();
+            graficoMensal = new Chart(ctx, {
+                type: 'bar', data: { labels, datasets: [{ data: valores, backgroundColor: '#ff8c00', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#222' } }, x: { grid: { display: false } } } }
+            });
+        };
+
+        // --- MODAL TRIGGERS ---
+        window.openModalIngrediente = function() { 
+            document.getElementById('form-ingrediente').reset();
+            document.getElementById('ing-id').value = '';
+            document.getElementById('modal-ingrediente').classList.add('open'); 
+        };
+
+        window.openModalFicha = function() {
+            document.getElementById('ficha-lanche-nome').value = '';
+            document.getElementById('ficha-preco-venda').value = '';
+            document.getElementById('ficha-itens-container').innerHTML = '';
+            addFichaItemRow();
+            document.getElementById('modal-ficha').classList.add('open');
+        };
+
+        window.abrirModalCusto = function(c = null) {
+            document.getElementById('modal-custo').classList.add('open');
+            document.getElementById('form-custo').reset();
+            document.getElementById('custo-id').value = '';
+            if (c) {
+                document.getElementById('custo-id').value = c.id;
+                document.getElementById('custo-desc').value = c.descricao;
+                document.getElementById('custo-cat').value = c.categoria;
+                document.getElementById('custo-valor').value = c.valor;
+                document.getElementById('custo-modal-title').innerText = 'Editar Custo';
+            } else {
+                document.getElementById('custo-modal-title').innerText = 'Novo Custo';
+            }
+        };
+
+        // --- CRUD ACTIONS ---
+        window.editIngrediente = function(id) {
+            const i = appData.ingredientes.find(x => x.id === id);
+            if(!i) return;
+            document.getElementById('ing-id').value = i.id;
+            document.getElementById('ing-nome').value = i.nome;
+            document.getElementById('ing-unidade').value = i.unidade;
+            document.getElementById('ing-qtd').value = i.quantidadeCompra;
+            document.getElementById('ing-preco').value = i.precoCompra;
+            document.getElementById('ing-min').value = i.estoqueMinimo || 0;
+            document.getElementById('ing-data').value = i.dataAtualizacao;
+            document.getElementById('modal-ingrediente').classList.add('open');
+        };
+
+        window.deleteIngrediente = function(id) {
+            if(confirm("Excluir insumo?")) { appData.ingredientes = appData.ingredientes.filter(x => x.id !== id); save(); renderIngredientes(); }
+        };
+
+        window.editFicha = function(id) {
             const f = appData.fichas.find(x => x.id === id);
             const l = appData.lanches.find(x => x.id === f.lancheId);
             document.getElementById('ficha-lanche-nome').value = l.nome;
             document.getElementById('ficha-preco-venda').value = l.precoVenda;
             document.getElementById('ficha-itens-container').innerHTML = '';
             f.itens.forEach(i => addFichaItemRow(i.ingredienteId, i.quantidadeUsada));
-            updateFichaLive();
-            document.getElementById('modal-ficha').classList.add('open');
+            updateFichaLive(); document.getElementById('modal-ficha').classList.add('open');
+        };
+
+        window.addFichaItemRow = function(ingId = '', qtd = '') {
+            let opts = '<option value="">Insumo...</option>';
+            appData.ingredientes.forEach(ing => opts += `<option value="${ing.id}" ${ing.id === ingId ? 'selected' : ''}>${ing.nome}</option>`);
+            const div = document.createElement('div'); div.className = 'grid'; div.style.marginBottom = '8px';
+            div.innerHTML = `<div style="grid-column: span 2"><select class="ing-select" onchange="updateFichaLive()">${opts}</select></div><div><input type="number" step="0.001" value="${qtd}" class="ing-qtd" oninput="updateFichaLive()" placeholder="Qtd"></div><button class="btn btn-ghost btn-sm" onclick="this.parentElement.remove(); updateFichaLive();">✕</button>`;
+            document.getElementById('ficha-itens-container').appendChild(div);
+        };
+
+        window.updateFichaLive = function() {
+            let t = 0;
+            document.querySelectorAll('#ficha-itens-container .grid').forEach(r => {
+                const s = r.querySelector('.ing-select').value;
+                const i = r.querySelector('.ing-qtd').value;
+                const ing = appData.ingredientes.find(x => x.id === s);
+                if (ing && i) t += (ing.precoCompra / ing.quantidadeCompra) * parseFloat(i);
+            });
+            document.getElementById('ficha-total-live').innerText = fmtBRL(t);
+        };
+
+        window.editCusto = function(id) {
+            const c = appData.custosFixos.find(x => x.id === id);
+            if(c) abrirModalCusto(c);
+        };
+
+        window.deleteCusto = function(id) {
+            if(confirm("Remover?")) { appData.custosFixos = appData.custosFixos.filter(x => x.id !== id); save(); renderCustos(); }
+        };
+
+        window.deleteProducao = function(id) {
+            if(confirm("Remover venda?")) { appData.producao = appData.producao.filter(x => x.id !== id); save(); renderProducao(); atualizarDashboard(); gerarGraficoMensal(); }
+        };
+
+        window.promptEntrada = function(id) {
+            const q = prompt("Quantidade de entrada:");
+            if (q && !isNaN(q)) {
+                const i = appData.ingredientes.find(x => x.id === id);
+                if(i) i.estoqueAtual = (i.estoqueAtual || 0) + parseFloat(q);
+                save(); renderEstoque(); atualizarDashboard();
+            }
+        };
+
+        // --- FORM SUBMITS ---
+        function saveIngrediente(e) {
+            e.preventDefault();
+            const id = document.getElementById('ing-id').value;
+            const obj = { id: id || crypto.randomUUID(), nome: document.getElementById('ing-nome').value, unidade: document.getElementById('ing-unidade').value, quantidadeCompra: parseFloat(document.getElementById('ing-qtd').value), precoCompra: parseFloat(document.getElementById('ing-preco').value), estoqueMinimo: parseFloat(document.getElementById('ing-min').value) || 0, dataAtualizacao: document.getElementById('ing-data').value, estoqueAtual: 0 };
+            if (id) {
+                const idx = appData.ingredientes.findIndex(x => x.id === id);
+                obj.estoqueAtual = appData.ingredientes[idx].estoqueAtual;
+                appData.ingredientes[idx] = obj;
+            } else { appData.ingredientes.push(obj); }
+            save(); closeModals(); renderIngredientes(); showToast("Insumo Salvo!");
         }
 
-        function saveFicha() {
+        window.saveFicha = function() {
             const n = document.getElementById('ficha-lanche-nome').value;
             const p = parseFloat(document.getElementById('ficha-preco-venda').value);
-            if (!n || isNaN(p)) return showToast("Dados incompletos!");
+            if (!n || isNaN(p)) return;
             let l = appData.lanches.find(x => x.nome === n);
-            if (!l) { l = { id: crypto.randomUUID(), nome: n, precoVenda: p }; appData.lanches.push(l); }
-            else l.precoVenda = p;
+            if (!l) { l = { id: crypto.randomUUID(), nome: n, precoVenda: p }; appData.lanches.push(l); } else l.precoVenda = p;
             const items = [];
-            for (let r of document.getElementById('ficha-itens-container').children) {
-                const s = r.querySelector('select').value;
-                const i = parseFloat(r.querySelector('input').value);
-                if (s && i) items.push({ ingredienteId: s, quantidadeUsada: i });
-            }
+            document.querySelectorAll('#ficha-itens-container .grid').forEach(r => {
+                const s = r.querySelector('.ing-select').value;
+                const i = r.querySelector('.ing-qtd').value;
+                if (s && i) items.push({ ingredienteId: s, quantidadeUsada: parseFloat(i) });
+            });
             appData.fichas = appData.fichas.filter(f => f.lancheId !== l.id);
             appData.fichas.push({ id: crypto.randomUUID(), lancheId: l.id, itens: items });
-            save(); closeModals(); renderFichas(); showToast("Ficha salva!");
-        }
+            save(); closeModals(); renderFichas(); showToast("Ficha Salva!");
+        };
 
-        function deleteFicha(id) { if (confirm("Excluir ficha?")) { appData.fichas = appData.fichas.filter(f => f.id !== id); save(); renderFichas(); } }
-
-        // --- RENTABILIDADE ---
-        function renderResumoLanches() {
-            const tbody = document.querySelector('#table-resumo-lanches tbody');
-            tbody.innerHTML = '';
-            appData.lanches.forEach(l => {
-                const f = appData.fichas.find(x => x.lancheId === l.id);
-                const c = f ? calcularCustoFicha(f.id) : 0;
-                const cmv = l.precoVenda > 0 ? (c / l.precoVenda) * 100 : 0;
-                tbody.innerHTML += `<tr><td><strong>${l.nome}</strong></td><td>${fmtBRL(c)}</td><td>${fmtBRL(l.precoVenda)}</td><td>${cmv.toFixed(1)}%</td><td><span class="badge ${cmv <= appData.configuracoes.cmvAlvo ? 'badge-success' : 'badge-warning'}">${cmv <= appData.configuracoes.cmvAlvo ? 'OK' : 'Alto'}</span></td></tr>`;
-            });
-        }
-
-        // --- PRODUÇÃO ---
-        function renderProducao() {
-            const tbody = document.querySelector('#table-vendas tbody');
-            tbody.innerHTML = '';
-            appData.producao.sort((a,b) => b.dataISO.localeCompare(a.dataISO)).forEach(p => {
-                const l = appData.lanches.find(x => x.id === p.lancheId);
-                tbody.innerHTML += `<tr><td>${fmtDate(p.dataISO)}</td><td>${l?.nome || 'N/A'}</td><td>${p.quantidadeVendida}</td><td>${fmtBRL(p.faturamento)}</td><td><button class="btn btn-ghost btn-sm" onclick="deleteProducao('${p.id}')">🗑️</button></td></tr>`;
-            });
-        }
-
-        function handleHistoricoCSV(e) {
-            const fileInput = e.target;
-            const f = fileInput.files[0]; if (!f) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const lines = evt.target.result.split('\n');
-                const header = lines[0].split(',');
-                const c = { d: header.indexOf('Data'), i: header.indexOf('Itens'), t: header.indexOf('Total') };
-                for (let i = 1; i < lines.length; i++) {
-                    const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                    if (!row || !row[c.i]) continue;
-                    const dataRaw = row[c.d].split('/');
-                    const dataISO = `${dataRaw[2]}-${dataRaw[1]}-${dataRaw[0]}`;
-                    const items = row[c.i].replace(/"/g, '').split(',');
-                    items.forEach(it => {
-                        const m = it.trim().match(/(\d+)x\s+(.+)/);
-                        if (m) {
-                            const q = parseInt(m[1]), n = m[2];
-                            let l = appData.lanches.find(x => x.nome === n);
-                            if (!l) { l = { id: crypto.randomUUID(), nome: n, precoVenda: 0 }; appData.lanches.push(l); }
-                            appData.producao.push({ id: crypto.randomUUID(), dataISO, lancheId: l.id, quantidadeVendida: q, precoUnitario: l.precoVenda || 0, faturamento: q * (l.precoVenda || 0) });
-                        }
-                    });
-                }
-                save(); renderProducao(); atualizarDashboardFinanceiro(); showToast("CSV Importado!");
-                fileInput.value = '';
-            };
-            reader.readAsText(f);
-        }
-
-        function openModalProducao() {
-            const s = document.getElementById('prod-lanche-id');
-            s.innerHTML = '<option value="">Lanche...</option>';
-            appData.lanches.forEach(l => s.innerHTML += `<option value="${l.id}">${l.nome}</option>`);
-            document.getElementById('prod-data').value = new Date().toISOString().split('T')[0];
-            document.getElementById('modal-producao').classList.add('open');
-        }
-
-        function updateProdPrecoDefault() {
-            const id = document.getElementById('prod-lanche-id').value;
-            const l = appData.lanches.find(x => x.id === id);
-            if (l) document.getElementById('prod-preco').value = l.precoVenda;
+        function saveCusto(e) {
+            e.preventDefault();
+            const id = document.getElementById('custo-id').value;
+            const obj = { id: id || crypto.randomUUID(), descricao: document.getElementById('custo-desc').value, categoria: document.getElementById('custo-cat').value, valor: parseFloat(document.getElementById('custo-valor').value) };
+            if (id) { const idx = appData.custosFixos.findIndex(x => x.id === id); appData.custosFixos[idx] = obj; } else appData.custosFixos.push(obj);
+            save(); closeModals(); renderCustos(); showToast("Custo salvo!");
         }
 
         function saveProducao(e) {
@@ -758,117 +660,130 @@
             const lid = document.getElementById('prod-lanche-id').value;
             const q = parseInt(document.getElementById('prod-qtd').value);
             const p = parseFloat(document.getElementById('prod-preco').value);
+            baixarEstoquePorVenda(lid, q);
             appData.producao.push({ id: crypto.randomUUID(), dataISO: document.getElementById('prod-data').value, lancheId: lid, quantidadeVendida: q, precoUnitario: p, faturamento: q * p });
-            save(); closeModals(); renderProducao(); atualizarDashboardFinanceiro(); showToast("Lançado!");
+            save(); closeModals(); renderProducao(); atualizarDashboard(); gerarGraficoMensal(); showToast("Venda Registrada!");
         }
 
-        function deleteProducao(id) { if (confirm("Remover?")) { appData.producao = appData.producao.filter(p => p.id !== id); save(); renderProducao(); atualizarDashboardFinanceiro(); } }
+        // --- HANDLERS ---
+        window.showModule = function(modId) {
+            document.querySelectorAll('.module').forEach(m => m.classList.add('hidden'));
+            const mod = document.getElementById(`mod-${modId}`);
+            if (mod) mod.classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const nav = document.querySelector(`[data-module="${modId}"]`);
+            if(nav) nav.classList.add('active');
 
-        // --- CUSTOS FIXOS (CRUD) ---
-        const custosContainer = document.getElementById('custos-container');
-        const modalCusto = document.getElementById('modal-custo');
-        const formCusto = document.getElementById('form-custo');
+            if (window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
 
-        document.getElementById('btn-add-custo').addEventListener('click', () => abrirModalCusto());
-        document.getElementById('btn-cancel-custo').addEventListener('click', fecharModalCusto);
+            if (modId === 'indicadores') { atualizarDashboard(); setTimeout(gerarGraficoMensal, 50); }
+            if (modId === 'ingredientes') renderIngredientes();
+            if (modId === 'fichas') renderFichas();
+            if (modId === 'lanches') renderResumoLanches();
+            if (modId === 'producao') renderProducao();
+            if (modId === 'custos') renderCustos();
+            if (modId === 'estoque') renderEstoque();
+        };
 
-        function renderCustos() {
-            custosContainer.innerHTML = '';
-            if (!custosFixos.length) {
-                custosContainer.innerHTML = '<p style="padding:16px;color:var(--muted)">Nenhum custo cadastrado.</p>';
-                return;
-            }
-            custosFixos.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'custo-card';
-                div.innerHTML = `
-                    <strong>${c.descricao}</strong>
-                    <small>${c.categoria}</small>
-                    <strong>${fmtBRL(c.valor)}</strong>
-                    <div class="custo-actions">
-                        <button class="btn btn-ghost btn-sm btn-edit">✏️ Editar</button>
-                        <button class="btn btn-danger btn-sm btn-del">🗑️ Excluir</button>
-                    </div>
-                `;
-                div.querySelector('.btn-edit').onclick = () => abrirModalCusto(c);
-                div.querySelector('.btn-del').onclick = () => excluirCusto(c.id);
-                custosContainer.appendChild(div);
-            });
-            salvarCustos();
-            atualizarDashboardFinanceiro();
-        }
-
-        function abrirModalCusto(custo = null) {
-            modalCusto.classList.add('open');
-            if (custo) {
-                document.getElementById('custo-modal-title').innerText = 'Editar Custo';
-                document.getElementById('custo-id').value = custo.id;
-                document.getElementById('custo-desc').value = custo.descricao;
-                document.getElementById('custo-cat').value = custo.categoria;
-                document.getElementById('custo-valor').value = custo.valor;
-            } else {
-                document.getElementById('custo-modal-title').innerText = 'Novo Custo';
-                formCusto.reset();
-                document.getElementById('custo-id').value = '';
-            }
-        }
-
-        function fecharModalCusto() { modalCusto.classList.remove('open'); }
-
-        formCusto.addEventListener('submit', e => {
-            e.preventDefault();
-            const id = document.getElementById('custo-id').value;
-            const desc = document.getElementById('custo-desc').value;
-            const cat = document.getElementById('custo-cat').value;
-            const valor = parseFloat(document.getElementById('custo-valor').value);
-            if (id) {
-                const custo = custosFixos.find(c => c.id === id);
-                custo.descricao = desc; custo.categoria = cat; custo.valor = valor;
-            } else {
-                custosFixos.push({ id: crypto.randomUUID(), descricao: desc, categoria: cat, valor });
-            }
-            fecharModalCusto(); renderCustos(); showToast("Custos atualizados!");
-        });
-
-        function excluirCusto(id) {
-            if (!confirm('Excluir este custo?')) return;
-            custosFixos = custosFixos.filter(c => c.id !== id);
-            renderCustos();
-        }
-
-        // --- SISTEMA ---
-        function saveConfigs() { 
-            appData.configuracoes.cmvAlvo = parseFloat(document.getElementById('cfg-cmv-alvo').value); 
-            save(); 
-            atualizarDashboardFinanceiro();
-            showToast("Metas atualizadas!"); 
-        }
-        function openModalFicha() {
-            document.getElementById('ficha-lanche-nome').value = ''; document.getElementById('ficha-preco-venda').value = '';
-            document.getElementById('ficha-itens-container').innerHTML = ''; addFichaItemRow();
-            document.getElementById('modal-ficha').classList.add('open');
-        }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); }
-        function resetApp() { if (confirm("Deseja apagar TUDO?")) { localStorage.clear(); location.reload(); } }
-        function exportData() { 
-            const blobData = { ...appData, custosFixos };
-            const blob = new Blob([JSON.stringify(blobData)], {type: 'application/json'}); 
-            const url = URL.createObjectURL(blob); 
-            const l = document.createElement('a'); 
-            l.href = url; l.download = 'backup_burgermaster.json'; l.click(); 
-        }
-        function importData(e) {
-            const r = new FileReader();
-            r.onload = (evt) => { 
-                const data = JSON.parse(evt.target.result);
-                if(data.custosFixos) custosFixos = data.custosFixos;
-                appData = data; 
-                save(); salvarCustos(); location.reload(); 
+        window.handleHistoricoCSV = function(e) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const lines = evt.target.result.split('\n');
+                const header = lines[0].split(',');
+                const ci = { d: header.indexOf('Data'), i: header.indexOf('Itens') };
+                lines.slice(1).forEach(line => {
+                    const row = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    if (!row || !row[ci.i]) return;
+                    const parts = row[ci.d].split('/');
+                    if(parts.length < 3) return;
+                    const items = row[ci.i].replace(/"/g, '').split(',');
+                    items.forEach(it => {
+                        const match = it.trim().match(/(\d+)x\s+(.+)/);
+                        if (match) {
+                            const q = parseInt(match[1]), n = match[2];
+                            let l = appData.lanches.find(x => x.nome === n);
+                            if (!l) { l = { id: crypto.randomUUID(), nome: n, precoVenda: 0 }; appData.lanches.push(l); }
+                            baixarEstoquePorVenda(l.id, q);
+                            appData.producao.push({ id: crypto.randomUUID(), dataISO: `${parts[2]}-${parts[1]}-${parts[0]}`, lancheId: l.id, quantidadeVendida: q, precoUnitario: l.precoVenda, faturamento: q * l.precoVenda });
+                        }
+                    });
+                });
+                save(); renderProducao(); atualizarDashboard(); gerarGraficoMensal(); showToast("CSV Importado!");
             };
-            r.readAsText(e.target.files[0]);
+            reader.readAsText(e.target.files[0]);
+        };
+
+        window.gerarRelatorioPDF = function() {
+            const { jsPDF } = window.jspdf; const pdf = new jsPDF();
+            pdf.text('BurgerMaster - Financeiro', 14, 20);
+            const fat = appData.producao.reduce((acc, v) => acc + (v.faturamento || 0), 0);
+            pdf.text(`Faturamento Bruto: ${fmtBRL(fat)}`, 14, 40);
+            pdf.save('relatorio.pdf');
+        };
+
+        // --- INITIALIZATION ---
+        function init() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) appData = JSON.parse(saved);
+            
+            // Ligar Navegação
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.onclick = () => showModule(item.dataset.module);
+            });
+
+            // Carregar Dados na Interface
+            document.getElementById('cfg-cmv-alvo').value = appData.configuracoes.cmvAlvo;
+            document.getElementById('cfg-nome-loja').value = appData.configuracoes.nomeLoja || 'BurgerMaster Pro';
+            atualizarInterfaceNome();
+
+            // Listeners Adicionais
+            document.getElementById('btn-menu').onclick = () => document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('btn-novo-ingrediente').onclick = openModalIngrediente;
+            document.getElementById('btn-nova-ficha').onclick = openModalFicha;
+            document.getElementById('btn-add-custo').onclick = () => abrirModalCusto();
+            document.getElementById('btn-nova-venda').onclick = () => {
+                const s = document.getElementById('prod-lanche-id');
+                s.innerHTML = '<option value="">Selecionar...</option>' + appData.lanches.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
+                s.onchange = () => {
+                    const l = appData.lanches.find(x => x.id === s.value);
+                    if(l) document.getElementById('prod-preco').value = l.precoVenda;
+                };
+                document.getElementById('prod-data').value = new Date().toISOString().split('T')[0];
+                document.getElementById('modal-producao').classList.add('open');
+            };
+            document.getElementById('btn-import-csv').onclick = () => document.getElementById('importHistorico').click();
+            document.getElementById('importHistorico').onchange = handleHistoricoCSV;
+            document.getElementById('btn-backup-json').onclick = () => {
+                const b = new Blob([JSON.stringify(appData)], {type:'application/json'});
+                const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'backup_bm.json'; a.click();
+            };
+            document.getElementById('btn-restaurar').onclick = () => document.getElementById('importFile').click();
+            document.getElementById('importFile').onchange = (e) => {
+                const r = new FileReader(); r.onload = (ev) => { appData = JSON.parse(ev.target.result); save(); location.reload(); }; r.readAsText(e.target.files[0]);
+            };
+            document.getElementById('btn-reset-total').onclick = () => { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } };
+            document.getElementById('cfg-cmv-alvo').onchange = (e) => { appData.configuracoes.cmvAlvo = parseFloat(e.target.value); save(); atualizarDashboard(); };
+            document.getElementById('cfg-nome-loja').oninput = (e) => {
+                appData.configuracoes.nomeLoja = e.target.value;
+                save();
+                atualizarInterfaceNome();
+            };
+            document.getElementById('form-ingrediente').onsubmit = saveIngrediente;
+            document.getElementById('form-custo').onsubmit = saveCusto;
+            document.getElementById('form-venda').onsubmit = saveProducao;
+            document.getElementById('btn-relatorio-pdf').onclick = gerarRelatorioPDF;
+
+            showModule('indicadores');
         }
 
-        window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModals(); }
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("service-worker.js")
+            .then(() => console.log("PWA pronto"))
+            .catch(err => console.log("Erro SW:", err));
+        }
+
+        window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModals(); };
 
         init();
     </script>
