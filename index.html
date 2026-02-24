@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BurgerMaster Pro - V4.4 Estoque OK</title>
+    <title>BurgerMaster Pro - V4.8 (BRL)</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -18,16 +18,17 @@
     
     <style>
         :root {
-            --primary: #ff8c00;
+            --primary: #ff8c00; /* Laranja Neon */
             --secondary: #000000;
             --bg: #050505;
             --card: #111111;
             --text: #e0e0e0;
             --muted: #888888;
             --border: #222222;
-            --danger: #ff0033;
-            --success: #33ff00;
+            --danger: #ff0033; /* Vermelho Neon */
+            --success: #33ff00; /* Verde Neon */
             --neon-glow: 0 0 10px rgba(255, 140, 0, 0.5);
+            --neon-border: 0 0 5px rgba(255, 140, 0, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -51,11 +52,12 @@
         .card-title { font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: var(--primary); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px; }
 
         /* UI ELEMENTS */
-        .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--primary); cursor: pointer; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; background: transparent; color: var(--primary); text-transform: uppercase; }
+        .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--primary); cursor: pointer; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; background: transparent; color: var(--primary); text-transform: uppercase; }
         .btn-primary { background: var(--primary); color: #000; box-shadow: 0 0 10px rgba(255, 140, 0, 0.4); }
         .btn-primary:hover { box-shadow: 0 0 20px rgba(255, 140, 0, 0.6); transform: translateY(-1px); }
         .btn-ghost { border-color: var(--border); color: var(--muted); }
         .btn-danger { border-color: var(--danger); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: #fff; box-shadow: 0 0 10px var(--danger); }
         .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
 
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
@@ -70,7 +72,7 @@
         td { padding: 12px; border-bottom: 1px solid var(--border); color: #ccc; }
         tr:hover td { background: rgba(255, 140, 0, 0.05); color: #fff; }
 
-        /* MODALS */
+        /* FORMS */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 16px; backdrop-filter: blur(4px); }
         .modal.open { display: flex; }
         .modal-content { background: var(--card); padding: 24px; border-radius: 16px; width: 100%; max-width: 500px; border: 1px solid var(--primary); box-shadow: 0 0 40px rgba(255, 140, 0, 0.15); max-height: 90vh; overflow-y: auto; }
@@ -88,6 +90,11 @@
         .badge-danger { background: rgba(255, 0, 51, 0.1); color: var(--danger); border: 1px solid var(--danger); }
         .badge-warning { background: rgba(255, 140, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); }
 
+        /* Date Input Dark Mode Fix */
+        input[type="month"], input[type="date"] {
+            color-scheme: dark;
+        }
+
         #toast { position: fixed; bottom: 30px; right: 20px; background: var(--primary); color: #000; padding: 12px 24px; border-radius: 8px; display: none; z-index: 3000; font-weight: 700; box-shadow: 0 0 20px var(--primary); }
 
         @media(min-width:900px){
@@ -96,6 +103,7 @@
             .main { padding: 30px 30px 30px 290px; }
             .stats { grid-template-columns: repeat(5, 1fr); }
             .chart-container { height: 350px; }
+            #stats-lucro { grid-template-columns: repeat(3, 1fr); }
         }
     </style>
 </head>
@@ -108,7 +116,10 @@
 
     <aside class="sidebar" id="sidebar">
         <div id="sidebar-title" style="padding: 24px 14px; color: var(--primary); font-weight: 900; font-size: 1.2rem; letter-spacing: 1px;">BURGERMASTER</div>
+        <div style="padding: 0 14px 10px; font-size: 0.7rem; color: var(--muted); opacity: 0.7;">V4.8 BR</div>
         <div class="nav-item active" onclick="showModule('indicadores')" data-module="indicadores">📊 Indicadores</div>
+        <div class="nav-item" onclick="showModule('lucro')" data-module="lucro">💰 Lucro Mensal</div>
+        <div class="nav-item" onclick="showModule('engenharia')" data-module="engenharia">🧠 Engenharia</div>
         <div class="nav-item" onclick="showModule('ingredientes')" data-module="ingredientes">🥬 Insumos</div>
         <div class="nav-item" onclick="showModule('estoque')" data-module="estoque">📦 Estoque</div>
         <div class="nav-item" onclick="showModule('fichas')" data-module="fichas">📋 Fichas Técnicas</div>
@@ -127,9 +138,21 @@
                 <div class="card"><div class="card-title">Faturamento Mensal</div><div class="chart-container"><canvas id="graficoMensal"></canvas></div></div>
                 <div class="card"><div class="card-title">Alertas de Estoque</div><div id="alertas-estoque"></div></div>
             </div>
+        </section>
+
+        <!-- LUCRO MENSAL -->
+        <section id="mod-lucro" class="module hidden">
             <div class="card">
-                <div class="card-title">Margem por Produto</div>
-                <div class="table-wrap"><table id="table-alertas-cmv"><thead><tr><th>Lanche</th><th>CMV Real</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+                <div class="card-title">💰 Resultado do Mês <input type="month" id="filtro-mes" onchange="renderLucroMensal()" style="width:auto;display:inline-block;margin-left:10px;"></div>
+                <div class="stats" id="stats-lucro"></div>
+            </div>
+        </section>
+
+        <!-- ENGENHARIA -->
+        <section id="mod-engenharia" class="module hidden">
+            <div class="card">
+                <div class="card-title">📊 Análise de Cardápio</div>
+                <div class="table-wrap"><table id="table-engenharia"><thead><tr><th>Lanche</th><th>Custo</th><th>Venda</th><th>Ideal</th><th>CMV %</th><th>Lucro</th><th>Status</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
 
@@ -142,19 +165,27 @@
         <section id="mod-ingredientes" class="module hidden">
             <div class="card">
                 <div class="card-title">Insumos <button class="btn btn-primary" onclick="openModalIngrediente()">+ Novo</button></div>
-                <div class="table-wrap">
-                    <table id="table-ingredientes">
-                        <thead><tr><th>Nome</th><th>Tipo</th><th>Un.</th><th>Preço Lote</th><th>Mínimo</th><th>Ações</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div class="table-wrap"><table id="table-ingredientes"><thead><tr><th>Nome</th><th>Tipo</th><th>Un.</th><th>Preço Lote</th><th>Mín.</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
 
         <!-- FICHAS -->
         <section id="mod-fichas" class="module hidden">
             <div class="card">
-                <div class="card-title">Fichas Técnicas <button class="btn btn-primary" onclick="openModalFicha()">+ Criar</button></div>
+                <div class="card-title">
+                    Fichas Técnicas 
+                    <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                        <button class="btn btn-ghost btn-sm" onclick="exportarFichas()" title="Exportar para JSON">⬇️ JSON</button>
+                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFichas').click()" title="Importar JSON">⬆️ JSON</button>
+                        <input type="file" id="importFichas" class="hidden" accept=".json" onchange="importarFichas(event)">
+                        
+                        <!-- NOVO BOTÃO CSV -->
+                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFichasCSV').click()" title="Importar CSV (Lanche, Preço Venda, Ingrediente, Quantidade)">⬆️ CSV</button>
+                        <input type="file" id="importFichasCSV" class="hidden" accept=".csv" onchange="handleFichasCSV(event)">
+
+                        <button class="btn btn-primary btn-sm" onclick="openModalFicha()">+ Criar</button>
+                    </div>
+                </div>
                 <div class="table-wrap"><table id="table-fichas"><thead><tr><th>Lanche</th><th>Itens</th><th>Custo Real</th><th>Ações</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
@@ -178,7 +209,7 @@
         <!-- CUSTOS -->
         <section id="mod-custos" class="module hidden">
             <div class="card">
-                <div class="card-title">Custos Operacionais <button class="btn btn-primary" onclick="abrirModalCusto()">+ Novo</button></div>
+                <div class="card-title">Gastos Operacionais <button class="btn btn-primary" onclick="abrirModalCusto()">+ Novo</button></div>
                 <div id="custos-container" class="grid"></div>
             </div>
         </section>
@@ -195,10 +226,7 @@
                     <div class="card-title">Dados</div>
                     <div style="display:grid; gap:10px;">
                         <button class="btn btn-ghost" onclick="exportBackup()">💾 Backup Completo</button>
-                        <div>
-                            <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" style="width:100%">📂 Carregar Backup</button>
-                            <input type="file" id="importFile" class="hidden" accept=".json" onchange="importBackup(event)">
-                        </div>
+                        <div><button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" style="width:100%">📂 Carregar Backup</button><input type="file" id="importFile" class="hidden" accept=".json" onchange="importBackup(event)"></div>
                         <button class="btn btn-primary hidden" id="btn-aplicar-backup" onclick="aplicarBackup()">🔄 Aplicar Backup</button>
                         <button class="btn btn-danger" onclick="resetApp()">⚠️ Resetar Tudo</button>
                     </div>
@@ -217,57 +245,39 @@
                 <input type="hidden" id="ing-id">
                 <div class="form-group"><label>Nome</label><input type="text" id="ing-nome" required></div>
                 <div class="form-group"><label>Tipo de Controle</label><select id="ing-tipo" required><option value="peso">⚖️ Peso (kg, g, l...)</option><option value="unidade">🔢 Unidade (un, cx, pct...)</option><option value="porcionada">🥩 Porção Fixa (blend, pão...)</option></select></div>
-                <div class="grid">
-                    <div class="form-group"><label>Unidade de Medida</label><input type="text" id="ing-unidade" required placeholder="Ex: kg, un"></div>
-                    <div class="form-group"><label>Qtd. no Lote/Pacote</label><input type="number" id="ing-qtd" step="0.001" required placeholder="Ex: 1 (para 1kg) ou 20"></div>
-                </div>
-                <div class="grid">
-                    <div class="form-group"><label>Preço Total do Lote (R$)</label><input type="number" id="ing-preco" step="0.01" required></div>
-                    <div class="form-group"><label>Mínimo Estoque</label><input type="number" id="ing-min" step="0.001"></div>
-                </div>
+                <div class="grid"><div class="form-group"><label>Unidade de Medida</label><input type="text" id="ing-unidade" required placeholder="Ex: kg, un"></div><div class="form-group"><label>Qtd. no Lote/Pacote</label><input type="number" id="ing-qtd" step="0.001" required placeholder="Ex: 1 (para 1kg) ou 20"></div></div>
+                <div class="grid"><div class="form-group"><label>Preço Total do Lote (R$)</label><input type="number" id="ing-preco" step="0.01" required></div><div class="form-group"><label>Mínimo Estoque</label><input type="number" id="ing-min" step="0.001"></div></div>
                 <div class="form-group"><label>Data Atualização</label><input type="date" id="ing-data" required></div>
                 <div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Cancelar</button><button type="submit" class="btn btn-primary">Gravar</button></div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL ENTRADA DE ESTOQUE (NOVO) -->
+    <!-- MODAL ENTRADA DE ESTOQUE -->
     <div id="modal-entrada" class="modal">
         <div class="modal-content">
             <h3>Entrada de Estoque</h3>
             <form id="form-entrada" onsubmit="saveEntrada(event)">
                 <input type="hidden" id="entrada-ing-id">
-                <div class="form-group">
-                    <label>Ingrediente</label>
-                    <input type="text" id="entrada-nome" readonly style="background:#222; border:1px solid #333; color:#888;">
-                </div>
-                <div class="grid">
-                    <div class="form-group">
-                        <label>Quantidade a Adicionar</label>
-                        <input type="number" id="entrada-qtd" step="0.001" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Novo Preço Lote (Opcional)</label>
-                        <input type="number" id="entrada-preco" step="0.01" placeholder="Manter atual">
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:8px;">
-                    <button type="button" class="btn btn-ghost" onclick="closeModals()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Confirmar Entrada</button>
-                </div>
+                <div class="form-group"><label>Ingrediente</label><input type="text" id="entrada-nome" readonly style="background:#222; border:1px solid #333; color:#888;"></div>
+                <div class="grid"><div class="form-group"><label>Quantidade a Adicionar</label><input type="number" id="entrada-qtd" step="0.001" required></div><div class="form-group"><label>Novo Preço Lote (Opcional)</label><input type="number" id="entrada-preco" step="0.01" placeholder="Manter atual"></div></div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Cancelar</button><button type="submit" class="btn btn-primary">Confirmar Entrada</button></div>
             </form>
         </div>
     </div>
 
+    <!-- MODAL FICHA -->
     <div id="modal-ficha" class="modal"><div class="modal-content" style="max-width:700px;"><h3>Ficha Técnica</h3><div class="form-group"><label>Lanche</label><input type="text" id="ficha-lanche-nome" required></div><div class="form-group"><label>Preço Venda</label><input type="number" id="ficha-preco-venda" step="0.01" required></div><div id="ficha-itens-container"></div><button class="btn btn-ghost btn-sm" type="button" onclick="addFichaItemRow()">+ Insumo</button><div style="margin:15px 0; text-align:right;"><strong>CUSTO: <span id="ficha-total-live" style="color:var(--primary)">R$ 0,00</span></strong></div><div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Fechar</button><button type="button" class="btn btn-primary" onclick="saveFicha()">Salvar</button></div></div></div>
+    
     <div id="modal-producao" class="modal"><div class="modal-content"><h3>Nova Venda</h3><form id="form-venda" onsubmit="saveProducao(event)"><div class="form-group"><label>Data</label><input type="date" id="prod-data" required></div><div class="form-group"><label>Lanche</label><select id="prod-lanche-id" required></select></div><div class="grid"><div class="form-group"><label>Qtd</label><input type="number" id="prod-qtd" min="1" required></div><div class="form-group"><label>Preço Unit.</label><input type="number" id="prod-preco" step="0.01" required></div></div><div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button><button type="submit" class="btn btn-primary">Lançar</button></div></form></div></div>
+    
     <div id="modal-custo" class="modal"><div class="modal-content"><h3>Custo Operacional</h3><form id="form-custo" onsubmit="saveCusto(event)"><input type="hidden" id="custo-id"><label>Descrição</label><input type="text" id="custo-desc" required><label>Categoria</label><select id="custo-cat"><option value="Fixo">Fixo</option><option value="Variável">Variável</option></select><label>Valor</label><input type="number" id="custo-valor" step="0.01" required><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:15px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div>
 
     <div id="toast">Pronto!</div>
 
     <script>
         // ================= CONFIGURAÇÃO GERAL =================
-        const STORAGE_KEY = 'burgermaster_v4_4_data';
+        const STORAGE_KEY = 'burgermaster_v4_7_data';
         
         let appData = {
             ingredientes: [],
@@ -303,13 +313,10 @@
         
         window.showToast = function(m) { 
             const t = document.getElementById('toast'); 
-            if(t) {
-                t.innerText = m; t.style.display='block'; 
-                setTimeout(()=>t.style.display='none', 2500); 
-            }
+            if(t) { t.innerText = m; t.style.display='block'; setTimeout(()=>t.style.display='none', 2500); }
         };
 
-        // ================= SERVIÇOS FINANCEIROS V4 =================
+        // ================= SERVIÇOS FINANCEIROS V4.5 (CORE) =================
         const FinanceService = {
             normalizarIngrediente(ing) {
                 if(!ing) return ing;
@@ -329,11 +336,7 @@
                     return qtdUsada * custoUnitario;
                 }
                 
-                if (ing.tipo === "porcionada" || ing.tipo === "unidade") {
-                    return qtdUsada * custoUnitario;
-                }
-
-                return 0;
+                return qtdUsada * custoUnitario;
             },
             custoLanche(lancheId) {
                 const f = appData.fichas.find(x => x.lancheId === lancheId);
@@ -342,6 +345,47 @@
                     const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
                     return acc + this.custoIngrediente(ing, item.quantidadeUsada);
                 }, 0);
+            },
+            precoSugerido(lancheId) {
+                const custo = this.custoLanche(lancheId);
+                const cmvAlvo = appData.configuracoes.cmvAlvo / 100;
+                if (cmvAlvo <= 0) return 0;
+                return custo / cmvAlvo;
+            },
+            lucroUnitario(lancheId) {
+                const l = appData.lanches.find(x => x.id === lancheId);
+                if (!l) return 0;
+                const custo = this.custoLanche(l.id);
+                return l.precoVenda - custo;
+            },
+            resumoMensal(ano, mes) {
+                const vendasMes = appData.producao.filter(v => {
+                    const [y, m] = v.dataISO.split('-');
+                    return parseInt(y) === ano && parseInt(m) === mes;
+                });
+
+                const faturamento = vendasMes.reduce((acc, v) => acc + (v.faturamento || 0), 0);
+
+                let cpv = 0;
+                vendasMes.forEach(v => {
+                    cpv += this.custoLanche(v.lancheId) * v.quantidadeVendida;
+                });
+
+                const custosFixos = appData.custosFixos
+                    .filter(c => c.categoria === "Fixo")
+                    .reduce((acc, c) => acc + (c.valor || 0), 0);
+                
+                const outrosCustos = appData.custosFixos
+                     .filter(c => c.categoria === "Variável")
+                     .reduce((acc, c) => acc + (c.valor || 0), 0);
+
+                const lucro = faturamento - cpv - custosFixos - outrosCustos;
+                const margem = faturamento > 0 ? (lucro / faturamento) * 100 : 0;
+
+                const cmvMeta = appData.configuracoes.cmvAlvo / 100;
+                const pontoEquilibrio = (1 - cmvMeta) > 0 ? custosFixos / (1 - cmvMeta) : 0;
+
+                return { faturamento, cpv, custosFixos, lucro, margem, pontoEquilibrio };
             }
         };
 
@@ -368,9 +412,11 @@
             renderIngredientes();
             renderFichas();
             renderResumoLanches();
+            renderEngenharia();
             renderProducao();
             renderCustos();
             renderEstoque();
+            if(!document.getElementById('mod-lucro').classList.contains('hidden')) renderLucroMensal();
             atualizarDashboard();
             gerarGraficoMensal();
             window.atualizarInterfaceNome();
@@ -386,15 +432,14 @@
             document.querySelectorAll('.module').forEach(m => m.classList.add('hidden'));
             const mod = document.getElementById(`mod-${modId}`);
             if (mod) mod.classList.remove('hidden');
-            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             const nav = document.querySelector(`[data-module="${modId}"]`);
             if(nav) nav.classList.add('active');
-
             if (window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
-
             if (modId === 'indicadores') { atualizarDashboard(); setTimeout(gerarGraficoMensal, 50); }
+            else if (modId === 'lucro') renderLucroMensal();
             else if (modId === 'estoque') renderEstoque();
+            else if (modId === 'engenharia') renderEngenharia();
         };
 
         window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('open');
@@ -419,7 +464,41 @@
             }).join('');
         }
 
-        function renderResumoLanches() {
+        window.renderEngenharia = function() {
+            const tbody = document.querySelector('#table-engenharia tbody');
+            if (!tbody) return;
+            tbody.innerHTML = appData.lanches.map(l => {
+                const custo = FinanceService.custoLanche(l.id);
+                const precoIdeal = FinanceService.precoSugerido(l.id);
+                const lucro = FinanceService.lucroUnitario(l.id);
+                const cmv = l.precoVenda > 0 ? (custo / l.precoVenda) * 100 : 0;
+                let status = "badge-warning"; let label = "ATENÇÃO";
+                if (cmv <= appData.configuracoes.cmvAlvo && lucro > 0) { status = "badge-success"; label = "LUCRATIVO"; } 
+                else if (lucro <= 0) { status = "badge-danger"; label = "PREJUÍZO"; }
+                return `<tr><td><strong>${l.nome}</strong></td><td>${fmtBRL(custo)}</td><td>${fmtBRL(l.precoVenda)}</td><td style="color:var(--success); font-weight:700;">${fmtBRL(precoIdeal)}</td><td>${cmv.toFixed(1)}%</td><td style="color:${lucro >= 0 ? 'var(--success)' : 'var(--danger)'};">${fmtBRL(lucro)}</td><td><span class="badge ${status}">${label}</span></td></tr>`;
+            }).join('');
+        };
+
+        window.renderLucroMensal = function() {
+            const input = document.getElementById('filtro-mes');
+            if (!input) return;
+            const hoje = new Date();
+            if (!input.value) input.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+            const [ano, mes] = input.value.split('-').map(Number);
+            const r = FinanceService.resumoMensal(ano, mes);
+            const container = document.getElementById('stats-lucro');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="stat"><small>Faturamento</small><strong>${fmtBRL(r.faturamento)}</strong></div>
+                <div class="stat"><small>CPV (Custo Mercadoria)</small><strong>${fmtBRL(r.cpv)}</strong></div>
+                <div class="stat"><small>Custos Fixos</small><strong>${fmtBRL(r.custosFixos)}</strong></div>
+                <div class="stat" style="border-bottom-color:${r.lucro >= 0 ? 'var(--success)' : 'var(--danger)'}"><small>Lucro Líquido</small><strong style="color:${r.lucro >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmtBRL(r.lucro)}</strong></div>
+                <div class="stat"><small>Margem Líquida</small><strong>${r.margem.toFixed(1)}%</strong></div>
+                <div class="stat"><small>Ponto de Equilíbrio</small><strong>${fmtBRL(r.pontoEquilibrio)}</strong></div>
+            `;
+        };
+
+        window.renderResumoLanches = function() {
             const tbody = document.querySelector('#table-resumo-lanches tbody');
             if(!tbody) return;
             tbody.innerHTML = appData.lanches.map(l => {
@@ -428,44 +507,33 @@
                 const status = cmv <= appData.configuracoes.cmvAlvo ? 'badge-success' : 'badge-danger';
                 return `<tr><td>${l.nome}</td><td>${fmtBRL(c)}</td><td>${fmtBRL(l.precoVenda)}</td><td><span class="badge ${status}">${cmv.toFixed(1)}%</span></td></tr>`;
             }).join('');
-        }
+        };
 
-        function renderProducao() {
+        window.renderProducao = function() {
             const tbody = document.querySelector('#table-vendas tbody');
             if(!tbody) return;
             tbody.innerHTML = [...appData.producao].sort((a,b) => b.dataISO.localeCompare(a.dataISO)).map(p => {
                 const l = appData.lanches.find(x => x.id === p.lancheId);
                 return `<tr><td>${p.dataISO.split('-').reverse().join('/')}</td><td>${l?.nome || 'N/A'}</td><td>${p.quantidadeVendida}</td><td>${fmtBRL(p.faturamento)}</td><td><button class="btn btn-ghost btn-sm" onclick="deleteProducao('${p.id}')">🗑️</button></td></tr>`;
             }).join('');
-        }
+        };
 
-        function renderCustos() {
+        window.renderCustos = function() {
             const container = document.getElementById('custos-container');
             if(!container) return;
             container.innerHTML = appData.custosFixos.map(c => `
-                <div class="custo-card">
-                    <strong>${c.descricao}</strong><small>${c.categoria}</small><strong>${fmtBRL(c.valor)}</strong>
-                    <div style="display:flex; gap:8px;"><button class="btn btn-ghost btn-sm" onclick="editCusto('${c.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteCusto('${c.id}')">🗑️</button></div>
-                </div>`).join('');
+                <div class="custo-card"><strong>${c.descricao}</strong><small>${c.categoria}</small><strong>${fmtBRL(c.valor)}</strong><div style="display:flex; gap:8px;"><button class="btn btn-ghost btn-sm" onclick="editCusto('${c.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteCusto('${c.id}')">🗑️</button></div></div>`).join('');
             atualizarDashboard();
-        }
+        };
 
-        // ATUALIZAÇÃO: RENDER ESTOQUE COM BOTÃO PARA MODAL
-        function renderEstoque() {
+        window.renderEstoque = function() {
             const container = document.getElementById('estoque-container');
             if(!container) return;
             container.innerHTML = appData.ingredientes.map(i => {
                 const status = (i.estoqueAtual || 0) <= (i.estoqueMinimo || 0) ? 'badge-danger' : 'badge-success';
-                return `<div class="custo-card">
-                            <strong>${i.nome}</strong>
-                            <small>Saldo: ${(i.estoqueAtual || 0).toFixed(2)} ${i.unidade}</small>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                                <span class="badge ${status}">${(i.estoqueAtual || 0) <= (i.estoqueMinimo || 0) ? 'BAIXO' : 'OK'}</span>
-                                <button class="btn btn-ghost btn-sm" onclick="abrirModalEntrada('${i.id}')">+ Entrada</button>
-                            </div>
-                        </div>`;
+                return `<div class="custo-card"><strong>${i.nome}</strong><small>Saldo: ${(i.estoqueAtual || 0).toFixed(2)} ${i.unidade}</small><strong><span class="badge ${status}">${(i.estoqueAtual || 0) <= (i.estoqueMinimo || 0) ? 'BAIXO' : 'OK'}</span></strong><button class="btn btn-ghost btn-sm" onclick="abrirModalEntrada('${i.id}')">+ Entrada</button></div>`;
             }).join('');
-        }
+        };
 
         function atualizarDashboard() {
             const fat = appData.producao.reduce((acc, v) => acc + (v.faturamento || 0), 0);
@@ -568,7 +636,7 @@
             document.getElementById('entrada-ing-id').value = id;
             document.getElementById('entrada-nome').value = ing.nome;
             document.getElementById('entrada-qtd').value = '';
-            document.getElementById('entrada-preco').value = ''; // Opcional
+            document.getElementById('entrada-preco').value = ''; 
             
             document.getElementById('modal-entrada').classList.add('open');
             setTimeout(() => document.getElementById('entrada-qtd').focus(), 100);
@@ -630,9 +698,18 @@
         window.addFichaItemRow = function(ingId = '', qtd = '') {
             let opts = '<option value="">Insumo...</option>';
             appData.ingredientes.forEach(i => opts += `<option value="${i.id}" ${i.id === ingId ? 'selected' : ''}>${i.nome}</option>`);
-            const div = document.createElement('div'); div.className = 'grid'; div.style.marginBottom = '8px';
-            div.innerHTML = `<div style="grid-column: span 2"><select class="ing-select" onchange="updateFichaLive()">${opts}</select></div><div><input type="number" step="0.001" value="${qtd}" class="ing-qtd" oninput="updateFichaLive()" placeholder="Qtd"></div><button class="btn btn-ghost btn-sm" onclick="this.parentElement.remove(); updateFichaLive()">✕</button>`;
+            const div = document.createElement('div'); div.className = 'grid'; div.style.marginBottom = '8px'; div.style.alignItems = 'center';
+            div.innerHTML = `
+                <div style="grid-column: span 2"><select class="ing-select" onchange="updateFichaLive()">${opts}</select></div>
+                <div><input type="number" step="0.001" value="${qtd}" class="ing-qtd" oninput="updateFichaLive()" placeholder="Qtd"></div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeFichaItemRow(this)" title="Remover Item">🗑️</button>
+            `;
             document.getElementById('ficha-itens-container').appendChild(div);
+        };
+
+        window.removeFichaItemRow = function(btn) {
+            btn.parentElement.remove();
+            window.updateFichaLive();
         };
 
         window.updateFichaLive = function() {
@@ -651,6 +728,15 @@
         window.editCusto = function(id) { const c = appData.custosFixos.find(x => x.id === id); if(c) window.abrirModalCusto(c); };
         window.deleteCusto = function(id) { if(confirm("Remover?")) { appData.custosFixos = appData.custosFixos.filter(x => x.id !== id); saveImmediate(); renderCustos(); } };
         window.deleteProducao = function(id) { if(confirm("Remover venda?")) { appData.producao = appData.producao.filter(x => x.id !== id); saveImmediate(); reRenderAll(); } };
+
+        window.promptEntrada = function(id) {
+            const q = prompt("Quantidade de entrada:");
+            if (q && !isNaN(q)) {
+                const i = appData.ingredientes.find(x => x.id === id);
+                if(i) i.estoqueAtual = (i.estoqueAtual || 0) + parseFloat(q);
+                saveImmediate(); renderEstoque(); atualizarDashboard();
+            }
+        };
 
         // --- SUBMITS ---
         window.saveIngrediente = function(e) {
@@ -725,6 +811,203 @@
             saveImmediate(); closeModals(); reRenderAll(); showToast("Venda OK!");
         };
 
+        // ================= IMPORTAÇÃO / EXPORTAÇÃO DE FICHAS TÉCNICAS (NOVO) =================
+        window.exportarFichas = function() {
+            if (!appData.fichas || appData.fichas.length === 0) {
+                showToast("Nenhuma ficha para exportar.");
+                return;
+            }
+
+            // Cria uma estrutura portátil baseada em Nomes (não em IDs internos)
+            const exportData = {
+                tipo: "BurgerMasterFichas",
+                versao: "1.0",
+                fichas: appData.fichas.map(f => {
+                    const lanche = appData.lanches.find(l => l.id === f.lancheId);
+                    const itens = f.itens.map(item => {
+                        const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
+                        return {
+                            ingredienteNome: ing ? ing.nome : "Desconhecido",
+                            quantidadeUsada: item.quantidadeUsada
+                        };
+                    });
+                    return {
+                        lancheNome: lanche ? lanche.nome : "Lanche Desconhecido",
+                        precoVenda: lanche ? lanche.precoVenda : 0,
+                        itens: itens.filter(i => i.ingredienteNome !== "Desconhecido")
+                    };
+                })
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `fichas_burgermaster_${new Date().toISOString().slice(0,10)}.json`; a.click();
+            showToast("Fichas exportadas com sucesso!");
+        };
+
+        window.importarFichas = function(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const json = JSON.parse(ev.target.result);
+                    if (json.tipo !== "BurgerMasterFichas") throw new Error("Formato de ficheiro inválido.");
+
+                    let importadas = 0;
+                    
+                    json.fichas.forEach(fichaImport => {
+                        if (!fichaImport.lancheNome) return;
+
+                        // 1. Encontra ou cria o Lanche no Cardápio
+                        let lanche = appData.lanches.find(l => l.nome.toLowerCase() === fichaImport.lancheNome.toLowerCase());
+                        if (!lanche) {
+                            lanche = { id: crypto.randomUUID(), nome: fichaImport.lancheNome, precoVenda: fichaImport.precoVenda || 0 };
+                            appData.lanches.push(lanche);
+                        } else if (fichaImport.precoVenda > 0) {
+                            lanche.precoVenda = fichaImport.precoVenda; // Atualiza preço se existir no ficheiro
+                        }
+
+                        // 2. Resolve os ingredientes pelos Nomes
+                        const novosItens = [];
+                        fichaImport.itens.forEach(itemImp => {
+                            if (!itemImp.ingredienteNome) return;
+
+                            let ing = appData.ingredientes.find(i => i.nome.toLowerCase() === itemImp.ingredienteNome.toLowerCase());
+                            if (!ing) {
+                                // Cria um ingrediente genérico para não quebrar a ficha
+                                ing = {
+                                    id: crypto.randomUUID(),
+                                    nome: itemImp.ingredienteNome,
+                                    tipo: "unidade", // Padrão genérico
+                                    unidade: "un",
+                                    quantidadeCompra: 1,
+                                    precoLote: 0, // Utilizador terá que atualizar o preço depois
+                                    precoCompra: 0,
+                                    estoqueMinimo: 0,
+                                    dataAtualizacao: new Date().toISOString().split('T')[0],
+                                    estoqueAtual: 0
+                                };
+                                appData.ingredientes.push(ing);
+                            }
+                            novosItens.push({ ingredienteId: ing.id, quantidadeUsada: itemImp.quantidadeUsada });
+                        });
+
+                        // 3. Atualiza a Ficha ou cria uma nova
+                        let fichaExistente = appData.fichas.find(f => f.lancheId === lanche.id);
+                        if (fichaExistente) {
+                            fichaExistente.itens = novosItens; // Substitui pela versão importada
+                        } else {
+                            appData.fichas.push({ id: crypto.randomUUID(), lancheId: lanche.id, itens: novosItens });
+                        }
+                        
+                        importadas++;
+                    });
+
+                    saveImmediate();
+                    reRenderAll();
+                    showToast(`${importadas} Fichas importadas!`);
+                } catch(err) {
+                    alert("Erro ao importar: O ficheiro não contém fichas técnicas válidas.");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(f);
+            e.target.value = ''; // Reseta o input de ficheiro
+        };
+
+        // ================= IMPORTAÇÃO DE FICHAS VIA CSV (NOVO) =================
+        window.handleFichasCSV = function(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            
+            Papa.parse(f, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    try {
+                        let fichasMap = {};
+                        
+                        // 1. Agrupar as linhas do CSV pelo nome do Lanche
+                        results.data.forEach(row => {
+                            const lancheNome = row['Lanche'] || row['lanche'] || row['Nome Lanche'];
+                            const precoVendaStr = row['Preço Venda'] || row['Preco Venda'] || row['preco'] || '0';
+                            const ingNome = row['Ingrediente'] || row['ingrediente'] || row['Insumo'];
+                            const qtdStr = row['Quantidade'] || row['quantidade'] || row['Qtd'] || '0';
+
+                            if (!lancheNome || !ingNome) return; // Ignora linhas inválidas
+
+                            if (!fichasMap[lancheNome]) {
+                                fichasMap[lancheNome] = {
+                                    precoVenda: parseFloat(precoVendaStr.replace(',', '.')) || 0,
+                                    itens: []
+                                };
+                            }
+                            fichasMap[lancheNome].itens.push({
+                                nome: ingNome,
+                                qtd: parseFloat(qtdStr.replace(',', '.')) || 0
+                            });
+                        });
+
+                        let importadas = 0;
+                        
+                        // 2. Processar e cadastrar os dados agrupados
+                        for (const [lancheNome, dados] of Object.entries(fichasMap)) {
+                            // Encontra ou cria o Lanche
+                            let lanche = appData.lanches.find(l => l.nome.toLowerCase() === lancheNome.toLowerCase());
+                            if (!lanche) {
+                                lanche = { id: crypto.randomUUID(), nome: lancheNome, precoVenda: dados.precoVenda };
+                                appData.lanches.push(lanche);
+                            } else if (dados.precoVenda > 0) {
+                                lanche.precoVenda = dados.precoVenda;
+                            }
+
+                            // Resolve ingredientes
+                            const novosItens = [];
+                            dados.itens.forEach(itemImp => {
+                                let ing = appData.ingredientes.find(i => i.nome.toLowerCase() === itemImp.nome.toLowerCase());
+                                if (!ing) {
+                                    // Cria ingrediente genérico para não quebrar
+                                    ing = {
+                                        id: crypto.randomUUID(),
+                                        nome: itemImp.nome,
+                                        tipo: "unidade", 
+                                        unidade: "un",
+                                        quantidadeCompra: 1,
+                                        precoLote: 0,
+                                        precoCompra: 0,
+                                        estoqueMinimo: 0,
+                                        dataAtualizacao: new Date().toISOString().split('T')[0],
+                                        estoqueAtual: 0
+                                    };
+                                    appData.ingredientes.push(ing);
+                                }
+                                novosItens.push({ ingredienteId: ing.id, quantidadeUsada: itemImp.qtd });
+                            });
+
+                            // Atualiza a Ficha ou cria nova
+                            let fichaExistente = appData.fichas.find(f => f.lancheId === lanche.id);
+                            if (fichaExistente) {
+                                fichaExistente.itens = novosItens;
+                            } else {
+                                appData.fichas.push({ id: crypto.randomUUID(), lancheId: lanche.id, itens: novosItens });
+                            }
+                            importadas++;
+                        }
+
+                        saveImmediate();
+                        reRenderAll();
+                        showToast(`${importadas} Fichas (CSV) importadas!`);
+                    } catch (err) {
+                        alert("Erro ao importar CSV. Verifique as colunas (Lanche, Preço Venda, Ingrediente, Quantidade).");
+                        console.error(err);
+                    }
+                }
+            });
+            e.target.value = ''; // Limpa o input
+        };
+
         window.handleHistoricoCSV = function(e) {
             const f = e.target.files[0];
             if (!f) return;
@@ -760,7 +1043,7 @@
         };
 
         window.exportBackup = function() {
-            const backup = { versao: "4.3", sistema: "BurgerMaster Pro", dados: appData, data: new Date().toISOString() };
+            const backup = { versao: "4.7", sistema: "BurgerMaster Pro", dados: appData, data: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(backup, null, 2)], {type: "application/json"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `backup_bm_${new Date().toISOString().slice(0,10)}.json`; a.click();
