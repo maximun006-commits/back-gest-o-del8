@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BurgerMaster Pro - V4.8 (BRL)</title>
+    <title>BurgerMaster Pro - V4.8.4 (Geral)</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -18,24 +18,23 @@
     
     <style>
         :root {
-            --primary: #ff8c00; /* Laranja Neon */
+            --primary: #ff8c00;
             --secondary: #000000;
             --bg: #050505;
             --card: #111111;
             --text: #e0e0e0;
             --muted: #888888;
             --border: #222222;
-            --danger: #ff0033; /* Vermelho Neon */
-            --success: #33ff00; /* Verde Neon */
+            --danger: #ff0033;
+            --success: #33ff00;
             --neon-glow: 0 0 10px rgba(255, 140, 0, 0.5);
-            --neon-border: 0 0 5px rgba(255, 140, 0, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background: var(--bg); color: var(--text); overflow-x: hidden; }
         .hidden { display: none !important; }
 
-        /* LAYOUT */
+        /* HEADER & SIDEBAR */
         .header { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: var(--secondary); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 1000; border-bottom: 1px solid var(--primary); box-shadow: 0 0 15px rgba(255,140,0,0.2); }
         .header h1 { font-size: 1.1rem; color: var(--primary); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
         .header button { background: none; border: none; font-size: 1.4rem; color: #fff; cursor: pointer; }
@@ -47,6 +46,7 @@
         .nav-item.active { background: rgba(255, 140, 0, 0.1); color: var(--primary); border-color: var(--primary); }
         .nav-item:hover:not(.active) { background: rgba(255, 255, 255, 0.05); color: #fff; }
 
+        /* LAYOUT */
         .main { padding: 72px 16px 16px; max-width: 1200px; margin: auto; }
         .card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
         .card-title { font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: var(--primary); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px; }
@@ -90,12 +90,8 @@
         .badge-danger { background: rgba(255, 0, 51, 0.1); color: var(--danger); border: 1px solid var(--danger); }
         .badge-warning { background: rgba(255, 140, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); }
 
-        /* Date Input Dark Mode Fix */
-        input[type="month"], input[type="date"] {
-            color-scheme: dark;
-        }
-
-        #toast { position: fixed; bottom: 30px; right: 20px; background: var(--primary); color: #000; padding: 12px 24px; border-radius: 8px; display: none; z-index: 3000; font-weight: 700; box-shadow: 0 0 20px var(--primary); }
+        input[type="month"], input[type="date"] { color-scheme: dark; }
+        #toast { position: fixed; bottom: 30px; right: 20px; background: var(--primary); color: #000; padding: 12px 24px; border-radius: 8px; display: none; z-index: 4000; font-weight: 700; box-shadow: 0 0 20px var(--primary); }
 
         @media(min-width:900px){
             .header { display: none; }
@@ -111,12 +107,12 @@
 
     <header class="header">
         <h1 id="header-title">🍔 BurgerMaster Pro</h1>
-        <button id="btn-menu">☰</button>
+        <button id="btn-menu" onclick="toggleSidebar()">☰</button>
     </header>
 
     <aside class="sidebar" id="sidebar">
         <div id="sidebar-title" style="padding: 24px 14px; color: var(--primary); font-weight: 900; font-size: 1.2rem; letter-spacing: 1px;">BURGERMASTER</div>
-        <div style="padding: 0 14px 10px; font-size: 0.7rem; color: var(--muted); opacity: 0.7;">V4.8 BR</div>
+        <div style="padding: 0 14px 10px; font-size: 0.7rem; color: var(--muted); opacity: 0.7;">V4.8.4 GERAL</div>
         <div class="nav-item active" onclick="showModule('indicadores')" data-module="indicadores">📊 Indicadores</div>
         <div class="nav-item" onclick="showModule('lucro')" data-module="lucro">💰 Lucro Mensal</div>
         <div class="nav-item" onclick="showModule('engenharia')" data-module="engenharia">🧠 Engenharia</div>
@@ -175,14 +171,19 @@
                 <div class="card-title">
                     Fichas Técnicas 
                     <div style="display:flex; gap:8px; flex-wrap: wrap;">
-                        <button class="btn btn-ghost btn-sm" onclick="exportarFichas()" title="Exportar para JSON">⬇️ JSON</button>
-                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFichas').click()" title="Importar JSON">⬆️ JSON</button>
+                        <button class="btn btn-ghost btn-sm" onclick="exportarFichas()" title="Exportar fichas para JSON">⬇️ Fichas JSON</button>
+                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFichas').click()" title="Importar fichas via JSON">⬆️ Fichas JSON</button>
                         <input type="file" id="importFichas" class="hidden" accept=".json" onchange="importarFichas(event)">
                         
-                        <!-- NOVO BOTÃO CSV -->
                         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFichasCSV').click()" title="Importar CSV (Lanche, Preço Venda, Ingrediente, Quantidade)">⬆️ CSV</button>
                         <input type="file" id="importFichasCSV" class="hidden" accept=".csv" onchange="handleFichasCSV(event)">
 
+                        <!-- BACKUP GERAL APLICADO AQUI -->
+                        <button class="btn btn-ghost btn-sm" onclick="exportBackupGeral()" title="Backup completo de todo o sistema">🧰 Backup Geral</button>
+                        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importBackupGeralFile').click()" title="Restaurar backup geral">🧰 Restaurar Geral</button>
+                        <input type="file" id="importBackupGeralFile" class="hidden" accept=".json" onchange="loadBackupGeralFile(event)">
+
+                        <button class="btn btn-ghost btn-sm" onclick="baixarUltimoSnapshot()" title="Baixar o último backup automático diário">🕒 Snapshot</button>
                         <button class="btn btn-primary btn-sm" onclick="openModalFicha()">+ Criar</button>
                     </div>
                 </div>
@@ -223,12 +224,9 @@
                     <div class="form-group"><label>CMV Alvo (%)</label><input type="number" id="cfg-cmv-alvo" step="0.01" onchange="saveConfigCMV(this.value)"></div>
                 </div>
                 <div class="card">
-                    <div class="card-title">Dados</div>
+                    <div class="card-title">Opções Avançadas</div>
                     <div style="display:grid; gap:10px;">
-                        <button class="btn btn-ghost" onclick="exportBackup()">💾 Backup Completo</button>
-                        <div><button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" style="width:100%">📂 Carregar Backup</button><input type="file" id="importFile" class="hidden" accept=".json" onchange="importBackup(event)"></div>
-                        <button class="btn btn-primary hidden" id="btn-aplicar-backup" onclick="aplicarBackup()">🔄 Aplicar Backup</button>
-                        <button class="btn btn-danger" onclick="resetApp()">⚠️ Resetar Tudo</button>
+                        <button class="btn btn-danger" onclick="resetApp()">⚠️ Resetar Tudo (Apagar Dados)</button>
                     </div>
                 </div>
             </div>
@@ -237,7 +235,7 @@
 
     <!-- MODAIS -->
     
-    <!-- Modal Insumo V4 -->
+    <!-- Modal Insumo -->
     <div id="modal-ingrediente" class="modal">
         <div class="modal-content">
             <h3>Novo Insumo</h3>
@@ -269,15 +267,57 @@
     <!-- MODAL FICHA -->
     <div id="modal-ficha" class="modal"><div class="modal-content" style="max-width:700px;"><h3>Ficha Técnica</h3><div class="form-group"><label>Lanche</label><input type="text" id="ficha-lanche-nome" required></div><div class="form-group"><label>Preço Venda</label><input type="number" id="ficha-preco-venda" step="0.01" required></div><div id="ficha-itens-container"></div><button class="btn btn-ghost btn-sm" type="button" onclick="addFichaItemRow()">+ Insumo</button><div style="margin:15px 0; text-align:right;"><strong>CUSTO: <span id="ficha-total-live" style="color:var(--primary)">R$ 0,00</span></strong></div><div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Fechar</button><button type="button" class="btn btn-primary" onclick="saveFicha()">Salvar</button></div></div></div>
     
+    <!-- MODAL VENDA -->
     <div id="modal-producao" class="modal"><div class="modal-content"><h3>Nova Venda</h3><form id="form-venda" onsubmit="saveProducao(event)"><div class="form-group"><label>Data</label><input type="date" id="prod-data" required></div><div class="form-group"><label>Lanche</label><select id="prod-lanche-id" required></select></div><div class="grid"><div class="form-group"><label>Qtd</label><input type="number" id="prod-qtd" min="1" required></div><div class="form-group"><label>Preço Unit.</label><input type="number" id="prod-preco" step="0.01" required></div></div><div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button><button type="submit" class="btn btn-primary">Lançar</button></div></form></div></div>
     
-    <div id="modal-custo" class="modal"><div class="modal-content"><h3>Custo Operacional</h3><form id="form-custo" onsubmit="saveCusto(event)"><input type="hidden" id="custo-id"><label>Descrição</label><input type="text" id="custo-desc" required><label>Categoria</label><select id="custo-cat"><option value="Fixo">Fixo</option><option value="Variável">Variável</option></select><label>Valor</label><input type="number" id="custo-valor" step="0.01" required><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:15px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div>
+    <!-- MODAL CUSTO -->
+    <div id="modal-custo" class="modal"><div class="modal-content"><h3 id="custo-modal-title">Custo Operacional</h3><form id="form-custo" onsubmit="saveCusto(event)"><input type="hidden" id="custo-id"><label>Descrição</label><input type="text" id="custo-desc" required><label>Categoria</label><select id="custo-cat"><option value="Fixo">Fixo</option><option value="Variável">Variável</option></select><label>Valor</label><input type="number" id="custo-valor" step="0.01" required><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:15px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Sair</button><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div>
+
+    <!-- MODAL RESTAURAR BACKUP GERAL -->
+    <div id="modal-backup-pro" class="modal">
+      <div class="modal-content">
+        <h3>Restaurar Backup (Geral)</h3>
+        <p style="color:var(--muted); font-size:0.85rem; margin:10px 0 16px;">Escolha como aplicar o backup carregado.</p>
+        <div class="card" style="background:#0b0b0b; border:1px solid var(--border); margin-bottom:12px;">
+          <div class="card-title" style="margin-bottom:10px;">Arquivo</div>
+          <div style="font-size:0.85rem; color:#ddd; line-height:1.4;">
+            <div><strong>Sistema:</strong> <span id="bk-pro-sistema">-</span></div>
+            <div><strong>Versão:</strong> <span id="bk-pro-versao">-</span></div>
+            <div><strong>Data:</strong> <span id="bk-pro-data">-</span></div>
+            <div><strong>Resumo:</strong> <span id="bk-pro-resumo">-</span></div>
+          </div>
+        </div>
+        <div style="display:grid; gap:10px;">
+          <button id="bk-btn-replace" type="button" class="btn btn-primary" onclick="aplicarBackupGeral('replace')">🔄 Substituir TUDO</button>
+          <button id="bk-btn-merge" type="button" class="btn btn-ghost" onclick="aplicarBackupGeral('merge')">➕ Mesclar TUDO (não apaga)</button>
+          <button id="bk-btn-fichas" type="button" class="btn btn-ghost" onclick="aplicarBackupGeral('fichas-only')">📋 Restaurar SÓ Fichas</button>
+          <button id="bk-btn-cancel" type="button" class="btn btn-danger" onclick="closeModals()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CONFIRM (Substitui confirm/alert do navegador) -->
+    <div id="modal-confirm" class="modal" style="z-index: 3000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h3 id="confirm-title" style="color: var(--primary);">Confirmação</h3>
+            <p id="confirm-message" style="margin: 20px 0; color: #ddd; font-size: 0.95rem;"></p>
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
+                <button class="btn btn-ghost" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn btn-primary" id="confirm-btn-yes">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <div id="toast">Pronto!</div>
 
     <script>
-        // ================= CONFIGURAÇÃO GERAL =================
-        const STORAGE_KEY = 'burgermaster_v4_7_data';
+        // ================= CONFIGURAÇÃO GERAL E VERSÃO =================
+        const APP_META = {
+            sistema: "BurgerMaster Pro",
+            versao: "4.8.4",
+            storageKey: "burgermaster_v4_8_data"
+        };
+        const STORAGE_KEY = APP_META.storageKey;
         
         let appData = {
             ingredientes: [],
@@ -288,7 +328,7 @@
             configuracoes: { cmvAlvo: 35, nomeLoja: 'BurgerMaster Pro' }
         };
 
-        let backupCarregadoTemp = null;
+        let backupGeralTemp = null;
         let graficoMensal = null;
 
         // ================= UTILITÁRIOS GLOBAIS =================
@@ -306,7 +346,7 @@
         const save = debounce(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }, 500);
         const saveImmediate = () => { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); };
 
-        // Define as funções globais ANTES de serem usadas
+        // ================= SISTEMA DE MODAIS SEGUROS =================
         window.closeModals = function() { 
             document.querySelectorAll('.modal').forEach(m => m.classList.remove('open')); 
         };
@@ -316,7 +356,22 @@
             if(t) { t.innerText = m; t.style.display='block'; setTimeout(()=>t.style.display='none', 2500); }
         };
 
-        // ================= SERVIÇOS FINANCEIROS V4.5 (CORE) =================
+        window.showConfirm = function(title, message, callback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-message').innerText = message;
+            const btnYes = document.getElementById('confirm-btn-yes');
+            btnYes.onclick = function() {
+                closeConfirmModal();
+                callback();
+            };
+            document.getElementById('modal-confirm').classList.add('open');
+        };
+
+        window.closeConfirmModal = function() {
+            document.getElementById('modal-confirm').classList.remove('open');
+        };
+
+        // ================= SERVIÇOS FINANCEIROS =================
         const FinanceService = {
             normalizarIngrediente(ing) {
                 if(!ing) return ing;
@@ -325,17 +380,13 @@
             },
             custoIngrediente(ing, qtdUsada) {
                 if (!ing || !qtdUsada || !ing.quantidadeCompra) return 0;
-                
                 ing = this.normalizarIngrediente(ing);
                 const custoUnitario = (ing.precoLote || ing.precoCompra) / ing.quantidadeCompra;
 
                 if (ing.tipo === "peso") {
-                    if (ing.unidade && ing.unidade.toLowerCase() === "kg") {
-                        return (qtdUsada / 1000) * custoUnitario;
-                    }
+                    if (ing.unidade && ing.unidade.toLowerCase() === "kg") return (qtdUsada / 1000) * custoUnitario;
                     return qtdUsada * custoUnitario;
                 }
-                
                 return qtdUsada * custoUnitario;
             },
             custoLanche(lancheId) {
@@ -363,28 +414,15 @@
                     const [y, m] = v.dataISO.split('-');
                     return parseInt(y) === ano && parseInt(m) === mes;
                 });
-
                 const faturamento = vendasMes.reduce((acc, v) => acc + (v.faturamento || 0), 0);
-
                 let cpv = 0;
-                vendasMes.forEach(v => {
-                    cpv += this.custoLanche(v.lancheId) * v.quantidadeVendida;
-                });
-
-                const custosFixos = appData.custosFixos
-                    .filter(c => c.categoria === "Fixo")
-                    .reduce((acc, c) => acc + (c.valor || 0), 0);
-                
-                const outrosCustos = appData.custosFixos
-                     .filter(c => c.categoria === "Variável")
-                     .reduce((acc, c) => acc + (c.valor || 0), 0);
-
+                vendasMes.forEach(v => { cpv += this.custoLanche(v.lancheId) * v.quantidadeVendida; });
+                const custosFixos = appData.custosFixos.filter(c => c.categoria === "Fixo").reduce((acc, c) => acc + (c.valor || 0), 0);
+                const outrosCustos = appData.custosFixos.filter(c => c.categoria === "Variável").reduce((acc, c) => acc + (c.valor || 0), 0);
                 const lucro = faturamento - cpv - custosFixos - outrosCustos;
                 const margem = faturamento > 0 ? (lucro / faturamento) * 100 : 0;
-
                 const cmvMeta = appData.configuracoes.cmvAlvo / 100;
                 const pontoEquilibrio = (1 - cmvMeta) > 0 ? custosFixos / (1 - cmvMeta) : 0;
-
                 return { faturamento, cpv, custosFixos, lucro, margem, pontoEquilibrio };
             }
         };
@@ -397,29 +435,18 @@
                     const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
                     if (ing) {
                         let deducao = item.quantidadeUsada * qtdVendida;
-                        if (ing.tipo === "peso" && ing.unidade && ing.unidade.toLowerCase() === "kg") {
-                            deducao = deducao / 1000;
-                        }
+                        if (ing.tipo === "peso" && ing.unidade && ing.unidade.toLowerCase() === "kg") { deducao = deducao / 1000; }
                         ing.estoqueAtual = Math.max(0, (ing.estoqueAtual || 0) - deducao);
                     }
                 });
             }
         };
 
-        // ================= CONTROLADORES DE UI (GLOBAIS) =================
-        
+        // ================= CONTROLADORES DE UI =================
         window.reRenderAll = function() {
-            renderIngredientes();
-            renderFichas();
-            renderResumoLanches();
-            renderEngenharia();
-            renderProducao();
-            renderCustos();
-            renderEstoque();
+            renderIngredientes(); renderFichas(); renderResumoLanches(); renderEngenharia(); renderProducao(); renderCustos(); renderEstoque();
             if(!document.getElementById('mod-lucro').classList.contains('hidden')) renderLucroMensal();
-            atualizarDashboard();
-            gerarGraficoMensal();
-            window.atualizarInterfaceNome();
+            atualizarDashboard(); gerarGraficoMensal(); window.atualizarInterfaceNome();
         };
 
         window.atualizarInterfaceNome = function() {
@@ -432,14 +459,22 @@
             document.querySelectorAll('.module').forEach(m => m.classList.add('hidden'));
             const mod = document.getElementById(`mod-${modId}`);
             if (mod) mod.classList.remove('hidden');
+
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             const nav = document.querySelector(`[data-module="${modId}"]`);
-            if(nav) nav.classList.add('active');
+            if (nav) nav.classList.add('active');
+
             if (window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
+
             if (modId === 'indicadores') { atualizarDashboard(); setTimeout(gerarGraficoMensal, 50); }
-            else if (modId === 'lucro') renderLucroMensal();
-            else if (modId === 'estoque') renderEstoque();
-            else if (modId === 'engenharia') renderEngenharia();
+            if (modId === 'lucro') renderLucroMensal();
+            if (modId === 'engenharia') renderEngenharia();
+            if (modId === 'ingredientes') renderIngredientes();
+            if (modId === 'estoque') renderEstoque();
+            if (modId === 'fichas') renderFichas();
+            if (modId === 'lanches') renderResumoLanches();
+            if (modId === 'producao') renderProducao();
+            if (modId === 'custos') renderCustos();
         };
 
         window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('open');
@@ -455,7 +490,7 @@
             }).join('');
         };
 
-        function renderFichas() {
+        window.renderFichas = function() {
             const tbody = document.querySelector('#table-fichas tbody');
             if(!tbody) return;
             tbody.innerHTML = appData.fichas.map(f => {
@@ -522,8 +557,10 @@
             const container = document.getElementById('custos-container');
             if(!container) return;
             container.innerHTML = appData.custosFixos.map(c => `
-                <div class="custo-card"><strong>${c.descricao}</strong><small>${c.categoria}</small><strong>${fmtBRL(c.valor)}</strong><div style="display:flex; gap:8px;"><button class="btn btn-ghost btn-sm" onclick="editCusto('${c.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteCusto('${c.id}')">🗑️</button></div></div>`).join('');
-            atualizarDashboard();
+                <div class="custo-card">
+                    <strong>${c.descricao}</strong><small>${c.categoria}</small><strong>${fmtBRL(c.valor)}</strong>
+                    <div style="display:flex; gap:8px;"><button class="btn btn-ghost btn-sm" onclick="editCusto('${c.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteCusto('${c.id}')">🗑️</button></div>
+                </div>`).join('');
         };
 
         window.renderEstoque = function() {
@@ -561,16 +598,6 @@
             if(alertCont) {
                 alertCont.innerHTML = alertasE.length ? alertasE.map(i => `<p style="color:var(--danger); font-size:0.8rem">⚠️ ${i.nome}: ${(i.estoqueAtual||0).toFixed(1)}</p>`).join('') : '<p style="color:var(--success); font-size:0.8rem">✅ Estoque em dia</p>';
             }
-
-            const tbody = document.querySelector('#table-alertas-cmv tbody');
-            if(tbody) {
-                tbody.innerHTML = '';
-                appData.lanches.forEach(l => {
-                    const c = FinanceService.custoLanche(l.id);
-                    const cmv = l.precoVenda > 0 ? (c/l.precoVenda)*100 : 0;
-                    if(cmv > appData.configuracoes.cmvAlvo) tbody.innerHTML += `<tr><td>${l.nome}</td><td class="text-danger">${cmv.toFixed(1)}%</td><td>⚠️</td></tr>`;
-                });
-            }
         }
 
         window.gerarGraficoMensal = function() {
@@ -588,15 +615,12 @@
             if (graficoMensal) graficoMensal.destroy();
             graficoMensal = new Chart(ctx, {
                 type: 'bar', 
-                data: { 
-                    labels: labels, 
-                    datasets: [{ label: 'Vendas', data: valores, backgroundColor: '#ff8c00', borderRadius: 4 }] 
-                },
+                data: { labels: labels, datasets: [{ label: 'Vendas', data: valores, backgroundColor: '#ff8c00', borderRadius: 4 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#222' } }, x: { grid: { display: false } } } }
             });
         };
 
-        // --- HANDLERS ---
+        // --- HANDLERS DE FORMS ---
         window.openModalIngrediente = function() { 
             const form = document.getElementById('form-ingrediente');
             if(form) form.reset();
@@ -628,21 +652,17 @@
             }
         };
 
-        // NOVA FUNÇÃO: ABRIR MODAL DE ENTRADA
         window.abrirModalEntrada = function(id) {
             const ing = appData.ingredientes.find(i => i.id === id);
             if(!ing) return;
-            
             document.getElementById('entrada-ing-id').value = id;
             document.getElementById('entrada-nome').value = ing.nome;
             document.getElementById('entrada-qtd').value = '';
             document.getElementById('entrada-preco').value = ''; 
-            
             document.getElementById('modal-entrada').classList.add('open');
             setTimeout(() => document.getElementById('entrada-qtd').focus(), 100);
         };
 
-        // NOVA FUNÇÃO: SALVAR ENTRADA
         window.saveEntrada = function(e) {
             e.preventDefault();
             const id = document.getElementById('entrada-ing-id').value;
@@ -650,25 +670,18 @@
             const novoPreco = parseFloat(document.getElementById('entrada-preco').value);
 
             if(isNaN(qtd)) { showToast("Quantidade inválida"); return; }
-
             const ing = appData.ingredientes.find(x => x.id === id);
             if(ing) {
                 ing.estoqueAtual = (ing.estoqueAtual || 0) + qtd;
-                
-                // Atualizar preço se fornecido
                 if(!isNaN(novoPreco) && novoPreco > 0) {
                     ing.precoLote = novoPreco;
                     ing.precoCompra = novoPreco;
                 }
-                
-                saveImmediate();
-                reRenderAll();
-                closeModals();
+                saveImmediate(); reRenderAll(); closeModals();
                 showToast(`Estoque atualizado: +${qtd}${ing.unidade}`);
             }
         };
 
-        // --- CRUD ACTIONS ---
         window.editIngrediente = function(id) {
             const i = appData.ingredientes.find(x => x.id === id);
             if(!i) return;
@@ -683,7 +696,12 @@
             document.getElementById('modal-ingrediente').classList.add('open');
         };
 
-        window.deleteIngrediente = function(id) { if(confirm("Excluir?")) { appData.ingredientes = appData.ingredientes.filter(x => x.id !== id); saveImmediate(); renderIngredientes(); } };
+        window.deleteIngrediente = function(id) { 
+            showConfirm("Excluir Insumo", "Tem a certeza que deseja excluir?", () => {
+                appData.ingredientes = appData.ingredientes.filter(x => x.id !== id); 
+                saveImmediate(); renderIngredientes(); 
+            });
+        };
 
         window.editFicha = function(id) {
             const f = appData.fichas.find(x => x.id === id);
@@ -699,18 +717,11 @@
             let opts = '<option value="">Insumo...</option>';
             appData.ingredientes.forEach(i => opts += `<option value="${i.id}" ${i.id === ingId ? 'selected' : ''}>${i.nome}</option>`);
             const div = document.createElement('div'); div.className = 'grid'; div.style.marginBottom = '8px'; div.style.alignItems = 'center';
-            div.innerHTML = `
-                <div style="grid-column: span 2"><select class="ing-select" onchange="updateFichaLive()">${opts}</select></div>
-                <div><input type="number" step="0.001" value="${qtd}" class="ing-qtd" oninput="updateFichaLive()" placeholder="Qtd"></div>
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeFichaItemRow(this)" title="Remover Item">🗑️</button>
-            `;
+            div.innerHTML = `<div style="grid-column: span 2"><select class="ing-select" onchange="updateFichaLive()">${opts}</select></div><div><input type="number" step="0.001" value="${qtd}" class="ing-qtd" oninput="updateFichaLive()" placeholder="Qtd"></div><button type="button" class="btn btn-danger btn-sm" onclick="removeFichaItemRow(this)" title="Remover Item">🗑️</button>`;
             document.getElementById('ficha-itens-container').appendChild(div);
         };
 
-        window.removeFichaItemRow = function(btn) {
-            btn.parentElement.remove();
-            window.updateFichaLive();
-        };
+        window.removeFichaItemRow = function(btn) { btn.parentElement.remove(); window.updateFichaLive(); };
 
         window.updateFichaLive = function() {
             let t = 0;
@@ -718,27 +729,37 @@
                 const s = r.querySelector('.ing-select').value;
                 const q = r.querySelector('.ing-qtd').value;
                 const ing = appData.ingredientes.find(x => x.id === s);
-                if (ing && q) {
-                    t += FinanceService.custoIngrediente(ing, parseFloat(q));
-                }
+                if (ing && q) { t += FinanceService.custoIngrediente(ing, parseFloat(q)); }
             });
             document.getElementById('ficha-total-live').innerText = fmtBRL(t);
         };
 
         window.editCusto = function(id) { const c = appData.custosFixos.find(x => x.id === id); if(c) window.abrirModalCusto(c); };
-        window.deleteCusto = function(id) { if(confirm("Remover?")) { appData.custosFixos = appData.custosFixos.filter(x => x.id !== id); saveImmediate(); renderCustos(); } };
-        window.deleteProducao = function(id) { if(confirm("Remover venda?")) { appData.producao = appData.producao.filter(x => x.id !== id); saveImmediate(); reRenderAll(); } };
-
-        window.promptEntrada = function(id) {
-            const q = prompt("Quantidade de entrada:");
-            if (q && !isNaN(q)) {
-                const i = appData.ingredientes.find(x => x.id === id);
-                if(i) i.estoqueAtual = (i.estoqueAtual || 0) + parseFloat(q);
-                saveImmediate(); renderEstoque(); atualizarDashboard();
-            }
+        window.deleteCusto = function(id) { 
+            showConfirm("Remover Custo", "Deseja remover este custo operacional?", () => {
+                appData.custosFixos = appData.custosFixos.filter(x => x.id !== id); 
+                saveImmediate(); renderCustos(); 
+            });
+        };
+        
+        window.deleteProducao = function(id) { 
+            showConfirm("Remover Venda", "Deseja remover este registo de venda?", () => {
+                appData.producao = appData.producao.filter(x => x.id !== id); 
+                saveImmediate(); reRenderAll(); 
+            });
         };
 
-        // --- SUBMITS ---
+        window.openModalProducao = function() {
+            const s = document.getElementById('prod-lanche-id');
+            s.innerHTML = '<option value="">Selecionar...</option>' + appData.lanches.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
+            s.onchange = () => {
+                const l = appData.lanches.find(x => x.id === s.value);
+                if(l) document.getElementById('prod-preco').value = l.precoVenda;
+            };
+            document.getElementById('prod-data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-producao').classList.add('open');
+        };
+
         window.saveIngrediente = function(e) {
             e.preventDefault();
             const p = parseFloat(document.getElementById('ing-preco').value);
@@ -811,209 +832,109 @@
             saveImmediate(); closeModals(); reRenderAll(); showToast("Venda OK!");
         };
 
-        // ================= IMPORTAÇÃO / EXPORTAÇÃO DE FICHAS TÉCNICAS (NOVO) =================
+        // ================= EXPORT / IMPORT =================
         window.exportarFichas = function() {
-            if (!appData.fichas || appData.fichas.length === 0) {
-                showToast("Nenhuma ficha para exportar.");
-                return;
-            }
-
-            // Cria uma estrutura portátil baseada em Nomes (não em IDs internos)
+            if (!appData.fichas || appData.fichas.length === 0) { showToast("Nenhuma ficha para exportar."); return; }
             const exportData = {
-                tipo: "BurgerMasterFichas",
-                versao: "1.0",
+                tipo: "BurgerMasterFichas", versao: "1.0",
                 fichas: appData.fichas.map(f => {
                     const lanche = appData.lanches.find(l => l.id === f.lancheId);
                     const itens = f.itens.map(item => {
                         const ing = appData.ingredientes.find(i => i.id === item.ingredienteId);
-                        return {
-                            ingredienteNome: ing ? ing.nome : "Desconhecido",
-                            quantidadeUsada: item.quantidadeUsada
-                        };
+                        return { ingredienteNome: ing ? ing.nome : "Desconhecido", quantidadeUsada: item.quantidadeUsada };
                     });
-                    return {
-                        lancheNome: lanche ? lanche.nome : "Lanche Desconhecido",
-                        precoVenda: lanche ? lanche.precoVenda : 0,
-                        itens: itens.filter(i => i.ingredienteNome !== "Desconhecido")
-                    };
+                    return { lancheNome: lanche ? lanche.nome : "Desconhecido", precoVenda: lanche ? lanche.precoVenda : 0, itens: itens.filter(i => i.ingredienteNome !== "Desconhecido") };
                 })
             };
-
             const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: "application/json"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `fichas_burgermaster_${new Date().toISOString().slice(0,10)}.json`; a.click();
-            showToast("Fichas exportadas com sucesso!");
+            showToast("Fichas exportadas!");
         };
 
         window.importarFichas = function(e) {
-            const f = e.target.files[0];
-            if (!f) return;
-            
+            const f = e.target.files[0]; if (!f) return;
             const reader = new FileReader();
             reader.onload = (ev) => {
                 try {
                     const json = JSON.parse(ev.target.result);
-                    if (json.tipo !== "BurgerMasterFichas") throw new Error("Formato de ficheiro inválido.");
-
+                    if (json.tipo !== "BurgerMasterFichas") throw new Error("Formato inválido.");
                     let importadas = 0;
-                    
                     json.fichas.forEach(fichaImport => {
                         if (!fichaImport.lancheNome) return;
-
-                        // 1. Encontra ou cria o Lanche no Cardápio
                         let lanche = appData.lanches.find(l => l.nome.toLowerCase() === fichaImport.lancheNome.toLowerCase());
-                        if (!lanche) {
-                            lanche = { id: crypto.randomUUID(), nome: fichaImport.lancheNome, precoVenda: fichaImport.precoVenda || 0 };
-                            appData.lanches.push(lanche);
-                        } else if (fichaImport.precoVenda > 0) {
-                            lanche.precoVenda = fichaImport.precoVenda; // Atualiza preço se existir no ficheiro
-                        }
+                        if (!lanche) { lanche = { id: crypto.randomUUID(), nome: fichaImport.lancheNome, precoVenda: fichaImport.precoVenda || 0 }; appData.lanches.push(lanche); } 
+                        else if (fichaImport.precoVenda > 0) lanche.precoVenda = fichaImport.precoVenda;
 
-                        // 2. Resolve os ingredientes pelos Nomes
                         const novosItens = [];
                         fichaImport.itens.forEach(itemImp => {
                             if (!itemImp.ingredienteNome) return;
-
                             let ing = appData.ingredientes.find(i => i.nome.toLowerCase() === itemImp.ingredienteNome.toLowerCase());
                             if (!ing) {
-                                // Cria um ingrediente genérico para não quebrar a ficha
-                                ing = {
-                                    id: crypto.randomUUID(),
-                                    nome: itemImp.ingredienteNome,
-                                    tipo: "unidade", // Padrão genérico
-                                    unidade: "un",
-                                    quantidadeCompra: 1,
-                                    precoLote: 0, // Utilizador terá que atualizar o preço depois
-                                    precoCompra: 0,
-                                    estoqueMinimo: 0,
-                                    dataAtualizacao: new Date().toISOString().split('T')[0],
-                                    estoqueAtual: 0
-                                };
+                                ing = { id: crypto.randomUUID(), nome: itemImp.ingredienteNome, tipo: "unidade", unidade: "un", quantidadeCompra: 1, precoLote: 0, precoCompra: 0, estoqueMinimo: 0, dataAtualizacao: new Date().toISOString().split('T')[0], estoqueAtual: 0 };
                                 appData.ingredientes.push(ing);
                             }
                             novosItens.push({ ingredienteId: ing.id, quantidadeUsada: itemImp.quantidadeUsada });
                         });
 
-                        // 3. Atualiza a Ficha ou cria uma nova
                         let fichaExistente = appData.fichas.find(f => f.lancheId === lanche.id);
-                        if (fichaExistente) {
-                            fichaExistente.itens = novosItens; // Substitui pela versão importada
-                        } else {
-                            appData.fichas.push({ id: crypto.randomUUID(), lancheId: lanche.id, itens: novosItens });
-                        }
-                        
+                        if (fichaExistente) fichaExistente.itens = novosItens; 
+                        else appData.fichas.push({ id: crypto.randomUUID(), lancheId: lanche.id, itens: novosItens });
                         importadas++;
                     });
-
-                    saveImmediate();
-                    reRenderAll();
-                    showToast(`${importadas} Fichas importadas!`);
-                } catch(err) {
-                    alert("Erro ao importar: O ficheiro não contém fichas técnicas válidas.");
-                    console.error(err);
-                }
-            };
-            reader.readAsText(f);
-            e.target.value = ''; // Reseta o input de ficheiro
+                    saveImmediate(); reRenderAll(); showToast(`${importadas} Fichas importadas!`);
+                } catch(err) { showToast("Erro ao importar: ficheiro inválido."); }
+            }; reader.readAsText(f); e.target.value = ''; 
         };
 
-        // ================= IMPORTAÇÃO DE FICHAS VIA CSV (NOVO) =================
         window.handleFichasCSV = function(e) {
-            const f = e.target.files[0];
-            if (!f) return;
-            
+            const f = e.target.files[0]; if (!f) return;
             Papa.parse(f, {
-                header: true,
-                skipEmptyLines: true,
+                header: true, skipEmptyLines: true,
                 complete: function(results) {
                     try {
                         let fichasMap = {};
-                        
-                        // 1. Agrupar as linhas do CSV pelo nome do Lanche
                         results.data.forEach(row => {
                             const lancheNome = row['Lanche'] || row['lanche'] || row['Nome Lanche'];
                             const precoVendaStr = row['Preço Venda'] || row['Preco Venda'] || row['preco'] || '0';
                             const ingNome = row['Ingrediente'] || row['ingrediente'] || row['Insumo'];
                             const qtdStr = row['Quantidade'] || row['quantidade'] || row['Qtd'] || '0';
-
-                            if (!lancheNome || !ingNome) return; // Ignora linhas inválidas
-
-                            if (!fichasMap[lancheNome]) {
-                                fichasMap[lancheNome] = {
-                                    precoVenda: parseFloat(precoVendaStr.replace(',', '.')) || 0,
-                                    itens: []
-                                };
-                            }
-                            fichasMap[lancheNome].itens.push({
-                                nome: ingNome,
-                                qtd: parseFloat(qtdStr.replace(',', '.')) || 0
-                            });
+                            if (!lancheNome || !ingNome) return; 
+                            if (!fichasMap[lancheNome]) { fichasMap[lancheNome] = { precoVenda: parseFloat(precoVendaStr.replace(',', '.')) || 0, itens: [] }; }
+                            fichasMap[lancheNome].itens.push({ nome: ingNome, qtd: parseFloat(qtdStr.replace(',', '.')) || 0 });
                         });
 
                         let importadas = 0;
-                        
-                        // 2. Processar e cadastrar os dados agrupados
                         for (const [lancheNome, dados] of Object.entries(fichasMap)) {
-                            // Encontra ou cria o Lanche
                             let lanche = appData.lanches.find(l => l.nome.toLowerCase() === lancheNome.toLowerCase());
-                            if (!lanche) {
-                                lanche = { id: crypto.randomUUID(), nome: lancheNome, precoVenda: dados.precoVenda };
-                                appData.lanches.push(lanche);
-                            } else if (dados.precoVenda > 0) {
-                                lanche.precoVenda = dados.precoVenda;
-                            }
+                            if (!lanche) { lanche = { id: crypto.randomUUID(), nome: lancheNome, precoVenda: dados.precoVenda }; appData.lanches.push(lanche); } 
+                            else if (dados.precoVenda > 0) { lanche.precoVenda = dados.precoVenda; }
 
-                            // Resolve ingredientes
                             const novosItens = [];
                             dados.itens.forEach(itemImp => {
                                 let ing = appData.ingredientes.find(i => i.nome.toLowerCase() === itemImp.nome.toLowerCase());
                                 if (!ing) {
-                                    // Cria ingrediente genérico para não quebrar
-                                    ing = {
-                                        id: crypto.randomUUID(),
-                                        nome: itemImp.nome,
-                                        tipo: "unidade", 
-                                        unidade: "un",
-                                        quantidadeCompra: 1,
-                                        precoLote: 0,
-                                        precoCompra: 0,
-                                        estoqueMinimo: 0,
-                                        dataAtualizacao: new Date().toISOString().split('T')[0],
-                                        estoqueAtual: 0
-                                    };
+                                    ing = { id: crypto.randomUUID(), nome: itemImp.nome, tipo: "unidade", unidade: "un", quantidadeCompra: 1, precoLote: 0, precoCompra: 0, estoqueMinimo: 0, dataAtualizacao: new Date().toISOString().split('T')[0], estoqueAtual: 0 };
                                     appData.ingredientes.push(ing);
                                 }
                                 novosItens.push({ ingredienteId: ing.id, quantidadeUsada: itemImp.qtd });
                             });
 
-                            // Atualiza a Ficha ou cria nova
                             let fichaExistente = appData.fichas.find(f => f.lancheId === lanche.id);
-                            if (fichaExistente) {
-                                fichaExistente.itens = novosItens;
-                            } else {
-                                appData.fichas.push({ id: crypto.randomUUID(), lancheId: lanche.id, itens: novosItens });
-                            }
+                            if (fichaExistente) fichaExistente.itens = novosItens;
+                            else appData.fichas.push({ id: crypto.randomUUID(), lancheId: lanche.id, itens: novosItens });
                             importadas++;
                         }
-
-                        saveImmediate();
-                        reRenderAll();
-                        showToast(`${importadas} Fichas (CSV) importadas!`);
-                    } catch (err) {
-                        alert("Erro ao importar CSV. Verifique as colunas (Lanche, Preço Venda, Ingrediente, Quantidade).");
-                        console.error(err);
-                    }
+                        saveImmediate(); reRenderAll(); showToast(`${importadas} Fichas (CSV) importadas!`);
+                    } catch (err) { showToast("Erro ao importar CSV."); }
                 }
-            });
-            e.target.value = ''; // Limpa o input
+            }); e.target.value = ''; 
         };
 
         window.handleHistoricoCSV = function(e) {
-            const f = e.target.files[0];
-            if (!f) return;
+            const f = e.target.files[0]; if (!f) return;
             Papa.parse(f, {
-                header: true,
-                skipEmptyLines: true,
+                header: true, skipEmptyLines: true,
                 complete: function(results) {
                     let imported = 0;
                     results.data.forEach(row => {
@@ -1026,8 +947,7 @@
                         itens.forEach(it => {
                             const m = it.trim().match(/(\d+)x\s+(.+)/);
                             if (m) {
-                                const q = parseInt(m[1]);
-                                const nome = m[2].trim();
+                                const q = parseInt(m[1]); const nome = m[2].trim();
                                 let l = appData.lanches.find(x => x.nome === nome);
                                 if (!l) { l = { id: crypto.randomUUID(), nome: nome, precoVenda: 0 }; appData.lanches.push(l); }
                                 StockService.baixarPorVenda(l.id, q);
@@ -1038,42 +958,181 @@
                     });
                     saveImmediate(); reRenderAll(); showToast(`${imported} vendas importadas!`);
                 }
-            });
-            e.target.value = '';
+            }); e.target.value = '';
         };
 
-        window.exportBackup = function() {
-            const backup = { versao: "4.7", sistema: "BurgerMaster Pro", dados: appData, data: new Date().toISOString() };
-            const blob = new Blob([JSON.stringify(backup, null, 2)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `backup_bm_${new Date().toISOString().slice(0,10)}.json`; a.click();
-            showToast("Backup exportado!");
+        // ================= BACKUP GERAL (LOCALSTORAGE TOTAL) =================
+        function isAppStorageKey(key) {
+            if (!key) return false;
+            if (key === STORAGE_KEY) return true;
+            if (key.startsWith(`${STORAGE_KEY}__`)) return true;
+
+            // Compatibilidade e migração de versões antigas controlada
+            const legacy = ["burgermaster_v4_7_data", "burgermaster_v4_6_data", "burgermaster_v4_5_data"];
+            if (legacy.includes(key)) return true;
+            if (key.startsWith("burgermaster_v4_7_data__")) return true;
+            if (key.startsWith("burgermaster_v4_6_data__")) return true;
+
+            return false;
         }
 
-        window.importBackup = function(e) {
-            const f = e.target.files[0];
-            if (!f) return;
+        function collectAppStorage() {
+            const storage = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (isAppStorageKey(k)) storage[k] = localStorage.getItem(k);
+            }
+            return storage;
+        }
+
+        function clearAppStorage() {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (isAppStorageKey(k)) keysToRemove.push(k);
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+        }
+
+        function summarizeStorage(storageObj) {
+            const keys = Object.keys(storageObj || {});
+            const hasMain = keys.includes(STORAGE_KEY);
+            const snapCount = keys.filter(k => k.includes("__daily_snapshot")).length;
+            return `Chaves: ${keys.length} | Principal: ${hasMain ? "SIM" : "NÃO"} | Snapshots: ${snapCount}`;
+        }
+
+        window.exportBackupGeral = function () {
+            try {
+                const storage = collectAppStorage();
+                const payload = {
+                    meta: { sistema: APP_META.sistema, versao: APP_META.versao, storageKey: STORAGE_KEY, exportedAt: new Date().toISOString(), type: "backup_geral_v1" },
+                    storage
+                };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const dt = new Date(); const y = dt.getFullYear(); const m = String(dt.getMonth() + 1).padStart(2, "0"); const d = String(dt.getDate()).padStart(2, "0"); const hh = String(dt.getHours()).padStart(2, "0"); const mm = String(dt.getMinutes()).padStart(2, "0");
+                const a = document.createElement("a");
+                a.href = url; a.download = `backup_geral_bm_${APP_META.versao.replaceAll(".","_")}_${y}${m}${d}-${hh}${mm}.json`; a.click();
+                URL.revokeObjectURL(url);
+                showToast("Backup GERAL exportado!");
+            } catch (e) { console.error(e); showToast("Falha ao exportar Backup Geral."); }
+        };
+
+        window.loadBackupGeralFile = function (e) {
+            const f = e.target.files?.[0]; if (!f) return;
             const reader = new FileReader();
             reader.onload = (ev) => {
                 try {
                     const json = JSON.parse(ev.target.result);
-                    if (json.dados) backupCarregadoTemp = json.dados;
-                    else backupCarregadoTemp = json; 
-                    document.getElementById('btn-aplicar-backup').classList.remove('hidden');
-                    showToast("Backup carregado. Clique em Aplicar.");
-                } catch(err) { alert("Arquivo inválido!"); }
-            };
-            reader.readAsText(f);
-            e.target.value = '';
+                    if (json?.meta?.type !== "backup_geral_v1" || !json.storage || typeof json.storage !== "object") {
+                        showToast("Arquivo inválido: não parece um Backup Geral."); return;
+                    }
+                    backupGeralTemp = json;
+                    document.getElementById("bk-pro-sistema").innerText = json.meta.sistema || "BurgerMaster Pro";
+                    document.getElementById("bk-pro-versao").innerText = json.meta.versao || "—";
+                    document.getElementById("bk-pro-data").innerText = json.meta.exportedAt ? new Date(json.meta.exportedAt).toLocaleString("pt-BR") : "—";
+                    document.getElementById("bk-pro-resumo").innerText = summarizeStorage(json.storage);
+                    document.getElementById("modal-backup-pro").classList.add("open");
+                } catch (err) { console.error(err); showToast("Erro ao ler arquivo."); } finally { e.target.value = ""; }
+            }; reader.readAsText(f);
+        };
+
+        function restoreStorageReplace(storageObj) {
+            clearAppStorage();
+            Object.entries(storageObj).forEach(([k, v]) => { if (isAppStorageKey(k)) localStorage.setItem(k, v); });
         }
 
-        window.aplicarBackup = function() {
-            if (!backupCarregadoTemp) return;
-            if (!confirm("Substituir dados atuais?")) return;
-            appData = backupCarregadoTemp;
-            saveImmediate();
-            location.reload();
+        function restoreStorageMerge(storageObj) {
+            Object.entries(storageObj).forEach(([k, v]) => { if (isAppStorageKey(k)) localStorage.setItem(k, v); });
         }
+
+        function restoreOnlyFichasFromStorage(storageObj) {
+            const raw = storageObj[STORAGE_KEY];
+            if (!raw) throw new Error("Backup não contém appData principal.");
+            const incomingData = JSON.parse(raw);
+            if (!incomingData || typeof incomingData !== "object") throw new Error("appData inválido.");
+            
+            const destLanches = new Map(appData.lanches.map(x => [x.id, x]));
+            incomingData.lanches.forEach(l => { if(l.id) destLanches.set(l.id, Object.assign(destLanches.get(l.id)||{}, l)); });
+            appData.lanches = Array.from(destLanches.values());
+
+            const destIng = new Map(appData.ingredientes.map(x => [x.id, x]));
+            incomingData.ingredientes.forEach(i => { if(i.id) destIng.set(i.id, Object.assign(destIng.get(i.id)||{}, i)); });
+            appData.ingredientes = Array.from(destIng.values());
+
+            const byLanche = new Map(appData.fichas.map(f => [f.lancheId, f]));
+            incomingData.fichas.forEach(f => {
+                if (!f?.lancheId) return;
+                if (byLanche.has(f.lancheId)) byLanche.get(f.lancheId).itens = JSON.parse(JSON.stringify(f.itens || []));
+                else appData.fichas.push(JSON.parse(JSON.stringify(f)));
+            });
+
+            saveImmediate();
+        }
+
+        window.aplicarBackupGeral = function (mode) {
+            if (!backupGeralTemp?.storage) { showToast("Nenhum Backup carregado."); return; }
+            const storageObj = backupGeralTemp.storage;
+
+            if (mode === "replace") {
+                showConfirm("Substituir Tudo", "Isso vai apagar TUDO do app e restaurar o backup. Continuar?", () => {
+                    try { 
+                        restoreStorageReplace(storageObj); 
+                        closeModals();
+                        showToast("A aplicar backup...");
+                        setTimeout(() => location.reload(), 200);
+                    } catch(e) { console.error(e); showToast("Erro ao aplicar."); }
+                });
+            } else if (mode === "merge") {
+                showConfirm("Mesclar Tudo", "Não apaga nada, só adiciona/atualiza. Continuar?", () => {
+                    try { 
+                        restoreStorageMerge(storageObj); 
+                        closeModals();
+                        showToast("A mesclar backup...");
+                        setTimeout(() => location.reload(), 200);
+                    } catch(e) { console.error(e); showToast("Erro ao aplicar."); }
+                });
+            } else if (mode === "fichas-only") {
+                showConfirm("Restaurar Fichas", "Vai mesclar lanches/ingredientes/fichas no app atual.", () => {
+                    try { 
+                        restoreOnlyFichasFromStorage(storageObj); 
+                        closeModals();
+                        reRenderAll(); 
+                        showToast("Fichas restauradas!"); 
+                    } catch(e) { console.error(e); showToast("Erro ao restaurar fichas."); }
+                });
+            }
+        };
+
+        // Snapshot Automático
+        const SNAPSHOT_KEY = `${STORAGE_KEY}__daily_snapshot`;
+        const SNAPSHOT_HISTORY_KEY = `${STORAGE_KEY}__daily_snapshot_history`; 
+        function todayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+
+        function saveDailySnapshot() {
+            try {
+                const key = todayKey(); 
+                const payload = { meta: { sistema: APP_META.sistema, versao: APP_META.versao, storageKey: STORAGE_KEY, snapshotDay: key, type: "backup_geral_v1" }, storage: collectAppStorage() };
+                localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(payload));
+                const history = JSON.parse(localStorage.getItem(SNAPSHOT_HISTORY_KEY) || "[]");
+                if (!history.includes(key)) history.push(key);
+                localStorage.setItem(SNAPSHOT_HISTORY_KEY, JSON.stringify(history.slice(-14)));
+            } catch (e) { console.warn("Snapshot falhou."); }
+        }
+
+        window.baixarUltimoSnapshot = function() {
+            const raw = localStorage.getItem(SNAPSHOT_KEY);
+            if (!raw) { showToast("Sem snapshot ainda."); return; }
+            try {
+                const payload = JSON.parse(raw);
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url;
+                const day = payload?.meta?.snapshotDay || "snapshot";
+                a.download = `snapshot_bm_${APP_META.versao.replaceAll(".","_")}_${day}.json`;
+                a.click(); URL.revokeObjectURL(url); showToast("Snapshot baixado!");
+            } catch (e) { showToast("ERRO: Snapshot corrompido."); }
+        };
 
         window.gerarRelatorioPDF = function() {
             const { jsPDF } = window.jspdf; const pdf = new jsPDF();
@@ -1085,15 +1144,28 @@
 
         window.saveConfigLoja = (val) => { appData.configuracoes.nomeLoja = val; save(); atualizarInterfaceNome(); };
         window.saveConfigCMV = (val) => { appData.configuracoes.cmvAlvo = parseFloat(val); save(); atualizarDashboard(); };
-        window.resetApp = () => { if(confirm("Zerar tudo?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
+        window.resetApp = () => { 
+            showConfirm("Zerar Tudo", "Atenção: Todos os dados serão apagados permanentemente.", () => {
+                try {
+                    clearAppStorage(); 
+                    location.reload(); 
+                } catch (e) {
+                    console.error(e);
+                    showToast("Erro ao resetar.");
+                }
+            });
+        };
         
         // --- INIT ---
         function init() {
             try {
-                const saved = localStorage.getItem(STORAGE_KEY);
+                let saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) saved = localStorage.getItem('burgermaster_v4_7_data');
+                if (!saved) saved = localStorage.getItem('burgermaster_v4_6_data');
+                if (!saved) saved = localStorage.getItem('burgermaster_v4_5_data');
+                
                 if (saved) {
                     appData = JSON.parse(saved);
-                    // Migração simples para V4.3
                     appData.ingredientes.forEach(i => {
                         if(!i.precoLote && i.precoCompra) i.precoLote = i.precoCompra;
                         if(!i.tipo) i.tipo = (i.unidade === 'un') ? 'unidade' : 'peso';
@@ -1103,28 +1175,14 @@
                 document.getElementById('cfg-cmv-alvo').value = appData.configuracoes.cmvAlvo;
                 document.getElementById('cfg-nome-loja').value = appData.configuracoes.nomeLoja || 'BurgerMaster';
                 
-                // SW Handler - catch to prevent unhandled rejection in previews
-                if ("serviceWorker" in navigator) { 
-                    navigator.serviceWorker.register("service-worker.js").catch(e => console.log("SW info:", e)); 
-                }
-
                 reRenderAll();
-                
-                // Configurar Modal Produção
-                const s = document.getElementById('prod-lanche-id');
-                if(s) {
-                    s.innerHTML = '<option value="">Selecionar...</option>' + appData.lanches.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
-                    s.onchange = () => {
-                        const l = appData.lanches.find(x => x.id === s.value);
-                        if(l) document.getElementById('prod-preco').value = l.precoVenda;
-                    };
-                }
+                saveDailySnapshot(); 
             } catch(e) { console.error("Erro init:", e); }
         }
 
         window.onclick = (e) => { if (e.target.classList.contains('modal')) closeModals(); };
-        
         init();
+
     </script>
 </body>
 </html>
