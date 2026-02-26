@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BurgerMaster Pro - V4.9 (Integração)</title>
+    <title>BurgerMaster Pro - V4.10 (Compras)</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -112,12 +112,13 @@
 
     <aside class="sidebar" id="sidebar">
         <div id="sidebar-title" style="padding: 24px 14px; color: var(--primary); font-weight: 900; font-size: 1.2rem; letter-spacing: 1px;">BURGERMASTER</div>
-        <div style="padding: 0 14px 10px; font-size: 0.7rem; color: var(--muted); opacity: 0.7;">V4.9 INTEGRAÇÃO</div>
+        <div style="padding: 0 14px 10px; font-size: 0.7rem; color: var(--muted); opacity: 0.7;">V4.10 COMPRAS</div>
         <div class="nav-item active" onclick="showModule('indicadores')" data-module="indicadores">📊 Indicadores</div>
         <div class="nav-item" onclick="showModule('lucro')" data-module="lucro">💰 Lucro Mensal</div>
         <div class="nav-item" onclick="showModule('engenharia')" data-module="engenharia">🧠 Engenharia</div>
         <div class="nav-item" onclick="showModule('ingredientes')" data-module="ingredientes">🥬 Insumos</div>
         <div class="nav-item" onclick="showModule('estoque')" data-module="estoque">📦 Estoque</div>
+        <div class="nav-item" onclick="showModule('compras')" data-module="compras">🛒 Compras de Insumos</div>
         <div class="nav-item" onclick="showModule('fichas')" data-module="fichas">📋 Fichas Técnicas</div>
         <div class="nav-item" onclick="showModule('lanches')" data-module="lanches">🥪 Cardápio</div>
         <div class="nav-item" onclick="showModule('producao')" data-module="producao">💰 Produção</div>
@@ -155,6 +156,33 @@
         <!-- ESTOQUE -->
         <section id="mod-estoque" class="module hidden">
             <div class="card"><div class="card-title">📦 Controle de Estoque</div><div id="estoque-container" class="grid"></div></div>
+        </section>
+
+        <!-- COMPRAS -->
+        <section id="mod-compras" class="module hidden">
+            <div class="card">
+                <div class="card-title">🛒 Compras de Insumos</div>
+                <div class="stats" id="stats-compras"></div>
+                <div class="card" style="margin-top:14px;">
+                    <div class="card-title">
+                        Histórico
+                        <input type="month" id="filtro-compras-mes" onchange="renderCompras()" style="width:auto;display:inline-block;margin-left:10px;">
+                    </div>
+                    <div class="table-wrap">
+                        <table id="table-compras">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Insumo</th>
+                                    <th>Qtd</th>
+                                    <th>Custo</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- INGREDIENTES -->
@@ -271,7 +299,20 @@
             <form id="form-entrada" onsubmit="saveEntrada(event)">
                 <input type="hidden" id="entrada-ing-id">
                 <div class="form-group"><label>Ingrediente</label><input type="text" id="entrada-nome" readonly style="background:#222; border:1px solid #333; color:#888;"></div>
-                <div class="grid"><div class="form-group"><label>Quantidade a Adicionar</label><input type="number" id="entrada-qtd" step="0.001" required></div><div class="form-group"><label>Novo Preço Lote (Opcional)</label><input type="number" id="entrada-preco" step="0.01" placeholder="Manter atual"></div></div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Quantidade a Adicionar</label>
+                        <input type="number" id="entrada-qtd" step="0.001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Novo Preço Lote (Opcional)</label>
+                        <input type="number" id="entrada-preco" step="0.01" placeholder="Manter atual">
+                    </div>
+                    <div class="form-group">
+                        <label>Valor pago nesta entrada (R$) (Opcional)</label>
+                        <input type="number" id="entrada-valor" step="0.01" placeholder="Ex: 120,00">
+                    </div>
+                </div>
                 <div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" class="btn btn-ghost" onclick="closeModals()">Cancelar</button><button type="submit" class="btn btn-primary">Confirmar Entrada</button></div>
             </form>
         </div>
@@ -331,8 +372,8 @@
         // ================= CONFIGURAÇÃO GERAL E VERSÃO =================
         const APP_META = {
             sistema: "BurgerMaster Pro",
-            versao: "4.9",
-            storageKey: "burgermaster_v4_9_data",
+            versao: "4.10",
+            storageKey: "burgermaster_v4_10_data",
             storagePrefixes: ["burgermaster_", "bm_"]
         };
         const STORAGE_KEY = APP_META.storageKey;
@@ -343,6 +384,7 @@
             fichas: [],
             producao: [],
             custosFixos: [],
+            comprasInsumos: [], // LOG DE COMPRAS E ENTRADAS
             configuracoes: { cmvAlvo: 35, nomeLoja: 'BurgerMaster Pro' }
         };
 
@@ -476,6 +518,7 @@
         window.reRenderAll = function() {
             renderIngredientes(); renderFichas(); renderResumoLanches(); renderEngenharia(); renderProducao(); renderCustos(); renderEstoque();
             if(!document.getElementById('mod-lucro').classList.contains('hidden')) renderLucroMensal();
+            if(!document.getElementById('mod-compras').classList.contains('hidden')) renderCompras();
             atualizarDashboard(); gerarGraficoMensal(); window.atualizarInterfaceNome();
         };
 
@@ -501,6 +544,7 @@
             if (modId === 'engenharia') renderEngenharia();
             if (modId === 'ingredientes') renderIngredientes();
             if (modId === 'estoque') renderEstoque();
+            if (modId === 'compras') renderCompras();
             if (modId === 'fichas') renderFichas();
             if (modId === 'lanches') renderResumoLanches();
             if (modId === 'producao') renderProducao();
@@ -605,6 +649,62 @@
             }).join('');
         };
 
+        function getWeekKey(dateISO) {
+            const d = new Date(dateISO + "T00:00:00");
+            const day = (d.getDay() + 6) % 7; 
+            d.setDate(d.getDate() - day);
+            return d.toISOString().slice(0,10);
+        }
+
+        window.renderCompras = function() {
+            appData.comprasInsumos = appData.comprasInsumos || [];
+            const input = document.getElementById("filtro-compras-mes");
+            if (input && !input.value) {
+                const hoje = new Date();
+                input.value = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,"0")}`;
+            }
+
+            const hojeISO = new Date().toISOString().slice(0,10);
+            const semanaKey = getWeekKey(hojeISO);
+            const mesKey = input ? input.value : hojeISO.slice(0,7);
+
+            const totalSemana = appData.comprasInsumos
+                .filter(c => getWeekKey(c.dataISO) === semanaKey)
+                .reduce((acc, c) => acc + (c.custo || 0), 0);
+
+            const totalMes = appData.comprasInsumos
+                .filter(c => (c.dataISO || "").slice(0,7) === mesKey)
+                .reduce((acc, c) => acc + (c.custo || 0), 0);
+
+            const stats = document.getElementById("stats-compras");
+            if (stats) {
+                stats.innerHTML = `
+                <div class="stat"><small>Gasto na Semana</small><strong>${fmtBRL(totalSemana)}</strong></div>
+                <div class="stat"><small>Gasto no Mês (${mesKey.split('-').reverse().join('/')})</small><strong>${fmtBRL(totalMes)}</strong></div>
+                `;
+            }
+
+            const tbody = document.querySelector("#table-compras tbody");
+            if (!tbody) return;
+
+            const lista = appData.comprasInsumos
+                .filter(c => (c.dataISO || "").slice(0,7) === mesKey)
+                .sort((a,b) => (b.dataISO||"").localeCompare(a.dataISO||""));
+
+            tbody.innerHTML = lista.map(c => {
+                const ing = appData.ingredientes.find(i => i.id === c.ingredienteId);
+                const nome = ing?.nome || "Insumo removido";
+                return `
+                <tr>
+                    <td>${(c.dataISO||"").split('-').reverse().join('/')}</td>
+                    <td>${nome}</td>
+                    <td>${(c.quantidade||0).toFixed(2)} ${c.unidade||""}</td>
+                    <td>${fmtBRL(c.custo||0)}</td>
+                </tr>
+                `;
+            }).join('') || `<tr><td colspan="4" style="color:#888;">Sem compras no mês.</td></tr>`;
+        };
+
         function atualizarDashboard() {
             const fat = appData.producao.reduce((acc, v) => acc + (v.faturamento || 0), 0);
             const fixos = appData.custosFixos.filter(c => c.categoria === 'Fixo').reduce((acc, c) => acc + (c.valor || 0), 0);
@@ -693,27 +793,60 @@
             document.getElementById('entrada-nome').value = ing.nome;
             document.getElementById('entrada-qtd').value = '';
             document.getElementById('entrada-preco').value = ''; 
+            document.getElementById('entrada-valor').value = '';
             document.getElementById('modal-entrada').classList.add('open');
             setTimeout(() => document.getElementById('entrada-qtd').focus(), 100);
         };
+
+        function custoUnitarioEstimado(ing) {
+            const preco = (ing.precoLote || ing.precoCompra || 0);
+            const qtdCompra = (ing.quantidadeCompra || 0);
+            if (qtdCompra <= 0) return 0;
+            return preco / qtdCompra; 
+        }
 
         window.saveEntrada = function(e) {
             e.preventDefault();
             const id = document.getElementById('entrada-ing-id').value;
             const qtd = parseFloat(document.getElementById('entrada-qtd').value);
             const novoPreco = parseFloat(document.getElementById('entrada-preco').value);
+            const valorPago = parseFloat(document.getElementById('entrada-valor').value);
 
-            if(isNaN(qtd)) { showToast("Quantidade inválida"); return; }
+            if (isNaN(qtd) || qtd <= 0) { showToast("Quantidade inválida"); return; }
+
             const ing = appData.ingredientes.find(x => x.id === id);
-            if(ing) {
-                ing.estoqueAtual = (ing.estoqueAtual || 0) + qtd;
-                if(!isNaN(novoPreco) && novoPreco > 0) {
-                    ing.precoLote = novoPreco;
-                    ing.precoCompra = novoPreco;
-                }
-                saveImmediate(); reRenderAll(); closeModals();
-                showToast(`Estoque atualizado: +${qtd}${ing.unidade}`);
+            if (!ing) { showToast("Ingrediente não encontrado"); return; }
+
+            ing.estoqueAtual = (ing.estoqueAtual || 0) + qtd;
+
+            if (!isNaN(novoPreco) && novoPreco > 0) {
+                ing.precoLote = novoPreco;
+                ing.precoCompra = novoPreco;
             }
+
+            let custoEntrada = 0;
+            if (!isNaN(valorPago) && valorPago > 0) {
+                custoEntrada = valorPago;
+            } else {
+                const unit = custoUnitarioEstimado(ing);
+                custoEntrada = unit * qtd;
+            }
+
+            appData.comprasInsumos = appData.comprasInsumos || [];
+            appData.comprasInsumos.push({
+                id: crypto.randomUUID(),
+                dataISO: new Date().toISOString().slice(0,10),
+                ingredienteId: ing.id,
+                quantidade: qtd,
+                unidade: ing.unidade,
+                custo: Number.isFinite(custoEntrada) ? custoEntrada : 0
+            });
+
+            saveImmediate();
+            reRenderAll();
+            closeModals();
+
+            showToast(`Entrada OK: +${qtd}${ing.unidade} | Custo: ${fmtBRL(custoEntrada)}`);
         };
 
         window.editIngrediente = function(id) {
@@ -945,78 +1078,112 @@
         };
 
         window.importarPedidosJSON = function (e) {
-            const f = e.target.files?.[0];
-            if (!f) return;
+            const file = e.target.files?.[0];
+            if (!file) return;
 
             const reader = new FileReader();
             reader.onload = (ev) => {
                 try {
-                    const json = JSON.parse(ev.target.result);
-                    if (json?.type !== "pedidos_v1" || !Array.isArray(json.pedidos)) {
-                        showToast("Arquivo inválido (não é pedidos_v1).");
+                    const payload = JSON.parse(ev.target.result);
+
+                    if (payload?.tipo !== "DEL8_PEDIDOS_EXPORT" && payload?.type !== "pedidos_v1") {
+                        showToast("Arquivo inválido (tipo desconhecido).");
+                        return;
+                    }
+                    if (!Array.isArray(payload.pedidos)) {
+                        showToast("Arquivo inválido (sem pedidos).");
                         return;
                     }
 
-                    let itensImportados = 0;
+                    // log anti-duplicação
+                    if (!appData.importLog) appData.importLog = { pedidos: [] };
+                    const importedSet = new Set(appData.importLog.pedidos || []);
+
+                    let novos = 0;
+                    let ignorados = 0;
                     let itensSemFicha = 0;
                     let itensSemSKU = 0;
 
-                    json.pedidos.forEach(p => {
+                    payload.pedidos.forEach(p => {
                         const dataISO = (p.dataISO || new Date().toISOString().slice(0,10));
+                        if (!p?.id || !Array.isArray(p.itens)) return;
 
-                        (p.itens || []).forEach(it => {
-                            const sku = normalizarSKU(it.sku);
-                            const qtd = parseInt(it.qtd || 0);
-                            const precoUnit = Number(it.precoUnit || 0);
+                        if (importedSet.has(p.id)) {
+                            ignorados++;
+                            return;
+                        }
 
-                            if (!sku) { itensSemSKU++; return; }
-                            if (!qtd || qtd < 1) return;
+                        p.itens.forEach(item => {
+                            const nome = (item?.lancheNome || item?.nome || "").trim();
+                            const sku = normalizarSKU(item?.sku);
+                            const qtd = Number(item?.quantidade || item?.qtd || 0);
+                            const precoUnit = Number(item?.precoUnit || 0);
 
-                            let lanche = appData.lanches.find(l => normalizarSKU(l.sku) === sku);
+                            if (!nome && !sku) { itensSemSKU++; return; }
+                            if (!qtd || qtd <= 0) return;
 
-                            // Se não existir, cria lanche + ficha pendente
+                            // acha ou cria lanche pelo nome ou SKU
+                            let lanche = null;
+                            if (sku) {
+                                lanche = appData.lanches.find(l => normalizarSKU(l.sku) === sku);
+                            } 
+                            if (!lanche && nome) {
+                                lanche = appData.lanches.find(l => (l.nome || "").toLowerCase() === nome.toLowerCase());
+                            }
+                            
                             if (!lanche) {
-                                lanche = { id: crypto.randomUUID(), sku, nome: sku, precoVenda: precoUnit || 0 };
+                                lanche = { id: crypto.randomUUID(), sku: sku || "", nome: nome || sku, precoVenda: precoUnit || 0 };
                                 appData.lanches.push(lanche);
                                 garantirFichaParaLanche(lanche.id);
+                            } else {
+                                // se veio preço e o cadastro estiver zerado, atualiza
+                                if ((lanche.precoVenda || 0) <= 0 && precoUnit > 0) lanche.precoVenda = precoUnit;
                             }
 
-                            // Desconta estoque pela ficha (se tiver itens)
+                            // registra em produção (venda)
+                            const price = precoUnit > 0 ? precoUnit : (lanche.precoVenda || 0);
+                            appData.producao.push({
+                                id: crypto.randomUUID(),
+                                dataISO: dataISO,
+                                lancheId: lanche.id,
+                                quantidadeVendida: qtd,
+                                precoUnitario: price,
+                                faturamento: qtd * price,
+                                origem: p.origem || payload.origem || "import_pedidos",
+                                pedidoId: p.id,
+                                mesa: p.mesa ?? null,
+                                combo: !!item.combo
+                            });
+
+                            // desconta estoque pela ficha técnica
                             const ficha = appData.fichas.find(x => x.lancheId === lanche.id);
                             if (!ficha || !Array.isArray(ficha.itens) || ficha.itens.length === 0) {
                                 itensSemFicha++;
                             } else {
-                                StockService.baixarPorVenda(lanche.id, qtd);
+                                if (typeof StockService !== 'undefined' && StockService.baixarPorVenda) {
+                                    StockService.baixarPorVenda(lanche.id, qtd, p.id);
+                                }
                             }
-
-                            // Registra na produção (vendas)
-                            const precoFinal = (precoUnit > 0) ? precoUnit : (lanche.precoVenda || 0);
-                            appData.producao.push({
-                                id: crypto.randomUUID(),
-                                dataISO,
-                                lancheId: lanche.id,
-                                quantidadeVendida: qtd,
-                                precoUnitario: precoFinal,
-                                faturamento: qtd * precoFinal,
-                                origem: json.origem || "import_pedidos"
-                            });
-
-                            itensImportados++;
                         });
+
+                        importedSet.add(p.id);
+                        novos++;
                     });
 
+                    appData.importLog.pedidos = Array.from(importedSet);
                     saveImmediate();
                     reRenderAll();
-                    showToast(`Pedidos importados: ${itensImportados} itens | sem ficha: ${itensSemFicha} | sem SKU: ${itensSemSKU}`);
+                    showToast(`Importação OK: ${novos} pedidos | ${ignorados} duplicados | ${itensSemFicha} s/ficha`);
+
                 } catch (err) {
                     console.error(err);
-                    showToast("Erro ao importar pedidos.");
+                    showToast("Erro ao importar JSON.");
                 } finally {
                     e.target.value = "";
                 }
             };
 
-            reader.readAsText(f);
+            reader.readAsText(file);
         };
 
         // ================= EXPORT / IMPORT =================
@@ -1156,9 +1323,9 @@
             if (key === STORAGE_KEY) return true;
             if (key.startsWith(`${STORAGE_KEY}__`)) return true;
 
-            // Compatibilidade e migração de versões antigas controlada
-            const legacy = ["burgermaster_v4_8_data", "burgermaster_v4_7_data", "burgermaster_v4_6_data", "burgermaster_v4_5_data"];
+            const legacy = ["burgermaster_v4_9_data", "burgermaster_v4_8_data", "burgermaster_v4_7_data", "burgermaster_v4_6_data", "burgermaster_v4_5_data"];
             if (legacy.includes(key)) return true;
+            if (key.startsWith("burgermaster_v4_9_data__")) return true;
             if (key.startsWith("burgermaster_v4_8_data__")) return true;
             if (key.startsWith("burgermaster_v4_7_data__")) return true;
             if (key.startsWith("burgermaster_v4_6_data__")) return true;
@@ -1350,6 +1517,7 @@
         function init() {
             try {
                 let saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) saved = localStorage.getItem('burgermaster_v4_9_data');
                 if (!saved) saved = localStorage.getItem('burgermaster_v4_8_data');
                 if (!saved) saved = localStorage.getItem('burgermaster_v4_7_data');
                 if (!saved) saved = localStorage.getItem('burgermaster_v4_6_data');
@@ -1361,6 +1529,7 @@
                         if(!i.precoLote && i.precoCompra) i.precoLote = i.precoCompra;
                         if(!i.tipo) i.tipo = (i.unidade === 'un') ? 'unidade' : 'peso';
                     });
+                    appData.comprasInsumos = appData.comprasInsumos || [];
                 }
 
                 document.getElementById('cfg-cmv-alvo').value = appData.configuracoes.cmvAlvo;
